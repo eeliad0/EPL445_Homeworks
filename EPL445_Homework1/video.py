@@ -117,9 +117,9 @@ class Ui_BrowseVideo(object):
         video.set(cv2.CAP_PROP_POS_FRAMES, frame)
         ret,img = video.read()
         #cv2.imwrite('image.png', img)
-        img = cv2.resize(img, (600, 400), interpolation=cv2.INTER_AREA)
+        #img = cv2.resize(img, (600, 400), interpolation=cv2.INTER_AREA)
         img_bw=cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        img_bw = cv2.resize(img_bw, (600, 400), interpolation=cv2.INTER_AREA)
+        #img_bw = cv2.resize(img_bw, (600, 400), interpolation=cv2.INTER_AREA)
         cv2.imshow('Original', img)
         img2 = cv2.cvtColor(img, cv2.COLOR_BGR2YCrCb)
 
