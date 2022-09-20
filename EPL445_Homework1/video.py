@@ -5,16 +5,14 @@
 # Created by: PyQt5 UI code generator 5.9.2
 #
 # WARNING! All changes made in this file will be lost!
-
+import cv2
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog
 import sys
-import os
-import numpy as np
-import cv2
-from glob import glob
+
+
 from matplotlib import pyplot as plt
-vid=""
+
 
 class Ui_BrowseVideo(object):
     def setupUi(self, BrowseVideo):
@@ -117,9 +115,9 @@ class Ui_BrowseVideo(object):
         video.set(cv2.CAP_PROP_POS_FRAMES, frame)
         ret,img = video.read()
         #cv2.imwrite('image.png', img)
-        img = cv2.resize(img, (600, 400), interpolation=cv2.INTER_AREA)
+
         img_bw=cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        img_bw = cv2.resize(img_bw, (600, 400), interpolation=cv2.INTER_AREA)
+
         cv2.imshow('Original', img)
         img2 = cv2.cvtColor(img, cv2.COLOR_BGR2YCrCb)
 

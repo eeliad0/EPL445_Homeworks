@@ -87,9 +87,7 @@ class Ui_Form(object):
         self.lineEdit.setText(path)
         src = path
         img = cv2.imread(src)
-        img = cv2.resize(img, (600, 400), interpolation=cv2.INTER_AREA)
         img_bw = cv2.imread(src, 0)
-        img_bw = cv2.resize(img_bw, (600, 400), interpolation=cv2.INTER_AREA)
         cv2.imshow('Original', img)
         img2 = cv2.cvtColor(img, cv2.COLOR_BGR2YCrCb)
 
