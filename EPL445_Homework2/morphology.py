@@ -11,13 +11,16 @@ import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog
 import sys
 import cv2
+from matplotlib import pyplot as plt
+import numpy as np
+from math import pi
 
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
         Form.resize(449, 217)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("../Downloads/magnifying_glass.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("search-flat.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         Form.setWindowIcon(icon)
         self.gridLayout_2 = QtWidgets.QGridLayout(Form)
         self.gridLayout_2.setObjectName("gridLayout_2")
@@ -162,6 +165,18 @@ class Ui_Form(object):
      self.lineEdit.setText(path)
      src = path
      img = cv2.imread(src)
+     img_bw = cv2.imread(src, 0)
+     #cv2.imshow('Grayscale', img_bw)
+     #cv2.waitKey(0)  # pressing any key on the keyboard continues the code
+     #cv2.destroyAllWindows()
+     plt.subplot(111), plt.imshow(img_bw, 'gray'), plt.title('Original')
+     plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
+     plt.colorbar()  # show the colorbar next to the subplot
+     plt.show()
+     #plt.subplot(232), plt.imshow(dilation, 'gray'), plt.title('Dilation')
+     #plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
+
+
 def main():
     app = QtWidgets.QApplication(sys.argv)
     window = QtWidgets.QWidget()
