@@ -8,6 +8,9 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
+from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog
+import sys
+import cv2
 
 class Ui_Form(object):
     def setupUi(self, Form):
@@ -148,6 +151,17 @@ class Ui_Form(object):
         self.comboBox_2.setItemText(3, _translate("Form", "Cross (9x9)"))
         self.pushButton_2.setText(_translate("Form", "Submit"))
         self.pushButton_3.setText(_translate("Form", "Save image"))
+        self.pushButton.clicked.connect(self.pushButton_handler)
+
+    def pushButton_handler(self):
+     self.open_dialog_box()
+
+    def open_dialog_box(self):
+     filename = QFileDialog.getOpenFileName(filter="Images (*.png *.tiff .jpg)")
+     path = filename[0]
+     self.lineEdit.setText(path)
+     src = path
+     img = cv2.imread(src)
 def main():
     app = QtWidgets.QApplication(sys.argv)
     window = QtWidgets.QWidget()
