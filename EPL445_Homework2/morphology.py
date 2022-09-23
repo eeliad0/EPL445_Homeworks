@@ -155,26 +155,58 @@ class Ui_Form(object):
         self.pushButton_2.setText(_translate("Form", "Submit"))
         self.pushButton_3.setText(_translate("Form", "Save image"))
         self.pushButton.clicked.connect(self.pushButton_handler)
+        self.pushButton_2.clicked.connect(self.pushButton_handler_2)
+        self.pushButton_3.clicked.connect(self.pushButton_handler_3)
 
     def pushButton_handler(self):
      self.open_dialog_box()
 
     def open_dialog_box(self):
      filename = QFileDialog.getOpenFileName(filter="Images (*.png *.tiff .jpg)")
+     global path
      path = filename[0]
      self.lineEdit.setText(path)
      src = path
-     img = cv2.imread(src)
-     img_bw = cv2.imread(src, 0)
+     #img = cv2.imread(src)
+     #img_bw = cv2.imread(src, 0)
      #cv2.imshow('Grayscale', img_bw)
      #cv2.waitKey(0)  # pressing any key on the keyboard continues the code
      #cv2.destroyAllWindows()
-     plt.subplot(111), plt.imshow(img_bw, 'gray'), plt.title('Original')
-     plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
-     plt.colorbar()  # show the colorbar next to the subplot
-     plt.show()
+     #plt.subplot(111), plt.imshow(img_bw, 'gray'), plt.title('Original')
+     #plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
+     #plt.colorbar()  # show the colorbar next to the subplot
+     #plt.show()
      #plt.subplot(232), plt.imshow(dilation, 'gray'), plt.title('Dilation')
      #plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
+
+
+
+
+    def pushButton_handler_2(self):
+     self.open_dialog_box_2()
+
+    def open_dialog_box_2(self):
+        self.lineEdit.setText(path)
+        src = path
+        img = cv2.imread(src)
+        cv2.imshow('Original', img)
+        img_bw = cv2.imread(src, 0)
+        cv2.imshow('Grayscale', img_bw)
+        # cv2.waitKey(0)  # pressing any key on the keyboard continues the code
+        # cv2.destroyAllWindows()
+        plt.subplot(111), plt.imshow(img_bw, 'gray'), plt.title('Original')
+        plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
+        plt.colorbar()  # show the colorbar next to the subplot
+        plt.show()
+        # plt.subplot(232), plt.imshow(dilation, 'gray'), plt.title('Dilation')
+        # plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
+    def pushButton_handler_3(self):
+     self.open_dialog_box_3()
+
+    def open_dialog_box_3(self):
+        fname = QtWidgets.QFileDialog.getSaveFileName('gray.jpg')
+
+
 
 
 def main():
