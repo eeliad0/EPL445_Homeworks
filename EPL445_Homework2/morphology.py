@@ -7,6 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+import sys
 
 class Ui_Form(object):
     def setupUi(self, Form):
@@ -147,4 +148,14 @@ class Ui_Form(object):
         self.comboBox_2.setItemText(3, _translate("Form", "Cross (9x9)"))
         self.pushButton_2.setText(_translate("Form", "Submit"))
         self.pushButton_3.setText(_translate("Form", "Save image"))
+def main():
+    app = QtWidgets.QApplication(sys.argv)
+    window = QtWidgets.QWidget()
+    ui = Ui_Form()
+    ui.setupUi(window)
+    window.show()
+    sys.exit(app.exec_())
 
+
+if __name__ == "__main__":
+    main()
