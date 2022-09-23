@@ -1,10 +1,11 @@
-# -*- coding: utf-8 -*-
+# Python program to demonstrate erosion and
+# dilation of images.
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
 
-# Form implementation generated from reading ui file 'Morphology_processing.ui'
-#
-# Created by: PyQt5 UI code generator 5.9.2
-#
-# WARNING! All changes made in this file will be lost!
+
+
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
@@ -14,6 +15,7 @@ import cv2
 from matplotlib import pyplot as plt
 import numpy as np
 from math import pi
+
 
 class Ui_Form(object):
     def setupUi(self, Form):
@@ -158,59 +160,114 @@ class Ui_Form(object):
         self.pushButton_2.clicked.connect(self.pushButton_handler_2)
         self.pushButton_3.clicked.connect(self.pushButton_handler_3)
 
+    def operation(self, op, kernel, img_orig):
+        global str1, img
+        str1 = op
+        if (op == "Dilation"):
+            img = cv2.dilate(img_orig, kernel, iterations=1)
+
+        elif (op == "Erosion"):
+            img = cv2.erode(img_orig, kernel, iterations=1)
+
+        elif (op == "Opening"):
+            img = cv2.morphologyEx(img_orig, cv2.MORPH_OPEN, kernel, iterations=1)
+
+        elif (op == "Closing"):
+            img = cv2.morphologyEx(img_orig, cv2.MORPH_CLOSE, kernel, iterations=1)
+
+        else:
+            print("error")
+
+    def kernelProduce(self, shape):
+        if (shape == "Cross (5x5)"):
+            kernel = np.array([[0, 0, 1, 0, 0],
+                               [0, 0, 1, 0, 0],
+                               [1, 1, 1, 1, 1],
+                               [0, 0, 1, 0, 0],
+                               [0, 0, 1, 0, 0]], dtype=np.uint8)
+
+        elif (shape == "Cross (9x9)"):
+            kernel = np.array([[0, 0, 0, 0, 1, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 1, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 1, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 1, 0, 0, 0, 0],
+                               [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                               [0, 0, 0, 0, 1, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 1, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 1, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 1, 0, 0, 0, 0]], dtype=np.uint8)
+        elif (shape == "Square (5x5)"):
+            kernel = np.ones((5, 5), np.uint8)
+        elif (shape == "Square (9x9)"):
+            kernel = np.ones((9, 9), np.uint8)
+        else:
+            print("error")
+        return kernel
+
     def pushButton_handler(self):
-     self.open_dialog_box()
+        self.open_dialog_box()
 
     def open_dialog_box(self):
-     filename = QFileDialog.getOpenFileName(filter="Images (*.png *.tiff .jpg)")
-     global path
-     path = filename[0]
-     self.lineEdit.setText(path)
-     src = path
-     #img = cv2.imread(src)
-     #img_bw = cv2.imread(src, 0)
-     #cv2.imshow('Grayscale', img_bw)
-     #cv2.waitKey(0)  # pressing any key on the keyboard continues the code
-     #cv2.destroyAllWindows()
-     #plt.subplot(111), plt.imshow(img_bw, 'gray'), plt.title('Original')
-     #plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
-     #plt.colorbar()  # show the colorbar next to the subplot
-     #plt.show()
-     #plt.subplot(232), plt.imshow(dilation, 'gray'), plt.title('Dilation')
-     #plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
-
-
-
+        filename = QFileDialog.getOpenFileName(filter="Images (*.png *.tiff .jpg)")
+        global path
+        path = filename[0]
+        self.lineEdit.setText(path)
 
     def pushButton_handler_2(self):
-     self.open_dialog_box_2()
+        self.open_dialog_box_2()
 
     def open_dialog_box_2(self):
-        self.lineEdit.setText(path)
-        src = path
-        img = cv2.imread(src)
-        cv2.imshow('Original', img)
-        img_bw = cv2.imread(src, 0)
-        cv2.imshow('Grayscale', img_bw)
-        # cv2.waitKey(0)  # pressing any key on the keyboard continues the code
-        # cv2.destroyAllWindows()
-        plt.subplot(111), plt.imshow(img_bw, 'gray'), plt.title('Original')
-        plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
-        plt.colorbar()  # show the colorbar next to the subplot
-        global gimg
-        gimg=plt.show()
-        # plt.subplot(232), plt.imshow(dilation, 'gray'), plt.title('Dilation')
-        # plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
+        imgOrig = cv2.imread(path)
+        imgGray = cv2.imread(path, 0)
+        if "dermatological" in path:
+            imgOrig = cv2.resize(imgOrig,None, fx=4, fy=4, interpolation=cv2.INTER_LINEAR)
+            imgGray = cv2.resize(imgGray,None, fx=4, fy=4, interpolation=cv2.INTER_LINEAR)
+        ret, imgBinary = cv2.threshold(imgGray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        cv2.imshow("Original", imgOrig)
+        cv2.imshow("Grayscale", imgGray)
+        cv2.imshow("Binary", imgBinary)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        ker = self.kernelProduce(self.comboBox_2.currentText())
+        self.operation(self.comboBox.currentText(), ker, imgBinary)
+
+        images = [imgOrig,
+                  imgGray,
+                  imgBinary,
+                  img]
+        titles = ['Original  Image',
+                  'Grayscale Image',
+                  'Binary Image',
+                  str1]
+
+        for i in range(4):
+            #plt.figure(0)
+            plt.subplot(2, 2, i + 1),
+            if(titles[i]=='Original  Image'):
+                plt.imshow(cv2.cvtColor(images[i], cv2.COLOR_BGR2RGB))
+            else:
+                plt.imshow(images[i],'gray')
+            plt.title(titles[i]),
+            plt.xticks([]), plt.yticks([])
+            plt.colorbar()
+        #plt.figure(figsize=(2, 2))
+
+        plt.show()
+        global sv
+        sv=plt.savefig("plot.jpg");
+
+
+       # cv2.waitKey(0)
+       #cv2.destroyAllWindows()
+
     def pushButton_handler_3(self):
-     self.open_dialog_box_3()
+        self.open_dialog_box_3()
 
     def open_dialog_box_3(self):
 
-        QtWidgets.QFileDialog.getSaveFileName(gimg, ("Save F:xile"),
-                                       "",
-                                       ("Images ( *.jpg)"))
-
-
+        QtWidgets.QFileDialog.getSaveFileName(sv, ("Save F:xile"),
+                                              None,
+                                              ("Images ( *.jpg)"))
 
 
 def main():
