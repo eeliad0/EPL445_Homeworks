@@ -197,14 +197,18 @@ class Ui_Form(object):
         plt.subplot(111), plt.imshow(img_bw, 'gray'), plt.title('Original')
         plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
         plt.colorbar()  # show the colorbar next to the subplot
-        plt.show()
+        global gimg
+        gimg=plt.show()
         # plt.subplot(232), plt.imshow(dilation, 'gray'), plt.title('Dilation')
         # plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
     def pushButton_handler_3(self):
      self.open_dialog_box_3()
 
     def open_dialog_box_3(self):
-        fname = QtWidgets.QFileDialog.getSaveFileName('gray.jpg')
+
+        QtWidgets.QFileDialog.getSaveFileName(gimg, ("Save F:xile"),
+                                       "",
+                                       ("Images ( *.jpg)"))
 
 
 
