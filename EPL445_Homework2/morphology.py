@@ -244,7 +244,7 @@ class Ui_Form(QWidget):
         self.open_dialog_box_3()
 
     def open_dialog_box_3(self):
-        name,blank = QFileDialog.getSaveFileName(self, 'Save File','C:\\', filter="Images (*.jpg)")
+        name,blank = QFileDialog.getSaveFileName(self, 'Save File', filter="Images (*.jpg)")
         if(name):
             cv2.imwrite(name, img)
         else:
