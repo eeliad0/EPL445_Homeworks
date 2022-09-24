@@ -1,14 +1,5 @@
-# Python program to demonstrate erosion and
-# dilation of images.
-import cv2
-import numpy as np
-from matplotlib import pyplot as plt
-
-
-
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog
 import sys
 import cv2
@@ -17,7 +8,7 @@ import numpy as np
 from math import pi
 
 
-class Ui_Form(object):
+class Ui_Form(QWidget):
     def setupUi(self, Form):
         Form.setObjectName("Form")
         Form.resize(449, 217)
@@ -226,8 +217,6 @@ class Ui_Form(object):
         cv2.imshow("Original", imgOrig)
         cv2.imshow("Grayscale", imgGray)
         cv2.imshow("Binary", imgBinary)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
         ker = self.kernelProduce(self.comboBox_2.currentText())
         self.operation(self.comboBox.currentText(), ker, imgBinary)
 
@@ -241,7 +230,6 @@ class Ui_Form(object):
                   str1]
 
         for i in range(4):
-            #plt.figure(0)
             plt.subplot(2, 2, i + 1),
             if(titles[i]=='Original  Image'):
                 plt.imshow(cv2.cvtColor(images[i], cv2.COLOR_BGR2RGB))
@@ -250,22 +238,17 @@ class Ui_Form(object):
             plt.title(titles[i]),
             plt.xticks([]), plt.yticks([])
             plt.colorbar()
-        #plt.figure(figsize=(2, 2))
-
         plt.show()
-        global sv
-        sv=plt.savefig("plot.jpg");
-
-
-       # cv2.waitKey(0)
-       #cv2.destroyAllWindows()
 
     def pushButton_handler_3(self):
         self.open_dialog_box_3()
 
     def open_dialog_box_3(self):
-        QtWidgets.QFileDialog.getSaveFileName(sv, directory=path, filter="Images ( *.jpg)")
-
+        name,blank = QFileDialog.getSaveFileName(self, 'Save File','C:\\', filter="Images (*.jpg)")
+        if(name):
+            cv2.imwrite(name, img)
+        else:
+            print("error")
 
 def main():
     app = QtWidgets.QApplication(sys.argv)

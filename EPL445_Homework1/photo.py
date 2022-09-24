@@ -8,8 +8,9 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog
-import sys
 import cv2
+import sys
+
 
 
 from matplotlib import pyplot as plt
