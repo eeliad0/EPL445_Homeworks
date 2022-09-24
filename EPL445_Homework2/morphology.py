@@ -208,7 +208,7 @@ class Ui_Form(object):
         self.open_dialog_box()
 
     def open_dialog_box(self):
-        filename = QFileDialog.getOpenFileName(filter="Images (*.png *.tiff .jpg)")
+        filename = QFileDialog.getOpenFileName(filter="Images (*.png *.tiff *.jpg)")
         global path
         path = filename[0]
         self.lineEdit.setText(path)
@@ -220,8 +220,8 @@ class Ui_Form(object):
         imgOrig = cv2.imread(path)
         imgGray = cv2.imread(path, 0)
         if "dermatological" in path:
-            imgOrig = cv2.resize(imgOrig,None, fx=4, fy=4, interpolation=cv2.INTER_LINEAR)
-            imgGray = cv2.resize(imgGray,None, fx=4, fy=4, interpolation=cv2.INTER_LINEAR)
+            imgOrig = cv2.resize(imgOrig, None, fx=4, fy=4, interpolation=cv2.INTER_LINEAR)
+            imgGray = cv2.resize(imgGray, None, fx=4, fy=4, interpolation=cv2.INTER_LINEAR)
         ret, imgBinary = cv2.threshold(imgGray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         cv2.imshow("Original", imgOrig)
         cv2.imshow("Grayscale", imgGray)
@@ -264,10 +264,7 @@ class Ui_Form(object):
         self.open_dialog_box_3()
 
     def open_dialog_box_3(self):
-
-        QtWidgets.QFileDialog.getSaveFileName(sv, ("Save F:xile"),
-                                              None,
-                                              ("Images ( *.jpg)"))
+        QtWidgets.QFileDialog.getSaveFileName(sv, directory=path, filter="Images ( *.jpg)")
 
 
 def main():
