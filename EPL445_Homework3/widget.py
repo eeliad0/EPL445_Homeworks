@@ -149,7 +149,7 @@ class Ui_Form(QWidget):
         filename = QFileDialog.getOpenFileName(filter="Images (*.png *.tiff *.jpg)")
         global path
         path = filename[0]
-        self.pathLineEditLineEdit.setText(path)
+        self.pathLineEdit.setText(path)
 
 
 
