@@ -127,7 +127,7 @@ class Ui_Form(QWidget):
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
+        Form.setWindowTitle(_translate("Form", "Homework 3"))
         self.label_5.setText(_translate("Form", "Select Image Region"))
         self.submitButton.setText(_translate("Form", "Submit"))
         self.saveButton.setText(_translate("Form", "Save Image"))
