@@ -144,11 +144,7 @@ class Ui_Form(QWidget):
         self.submitButton.clicked.connect(self.submitButton_handler)
 
 
-    def submitButton_handler(self):
-        self.open_dialog_box2()
 
-    def open_dialog_box2(self):
-        print("FFT")
     def browseButton_handler(self):
         self.open_dialog_box()
 
@@ -179,7 +175,11 @@ class Ui_Form(QWidget):
            cv2.imshow("Grayscale", imgGray)
            #cv2.imshow("Binary", imgBinary)
 
+    def submitButton_handler(self):
+        self.open_dialog_box2()
 
+    def open_dialog_box2(self):
+        print("FFT")
 def main():
     app = QtWidgets.QApplication(sys.argv)
     window = QtWidgets.QWidget()
