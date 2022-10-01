@@ -168,10 +168,10 @@ class Ui_Form(QWidget):
            if "dermatological" in path:
                imgOrig = cv2.resize(imgOrig, None, fx=4, fy=4, interpolation=cv2.INTER_LINEAR)
                imgGray = cv2.resize(imgGray, None, fx=4, fy=4, interpolation=cv2.INTER_LINEAR)
-           ret, imgBinary = cv2.threshold(imgGray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+           #ret, imgBinary = cv2.threshold(imgGray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
            cv2.imshow("Original", imgOrig)
            cv2.imshow("Grayscale", imgGray)
-           cv2.imshow("Binary", imgBinary)
+           #cv2.imshow("Binary", imgBinary)
 
 
 
