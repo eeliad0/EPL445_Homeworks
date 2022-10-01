@@ -141,8 +141,14 @@ class Ui_Form(QWidget):
         self.PassComboBox.setItemText(1, _translate("Form", "Mid Pass"))
         self.PassComboBox.setItemText(2, _translate("Form", "High Pass"))
         self.browseButton.clicked.connect(self.browseButton_handler)
-        #self.saveButton.clicked().connect(self.saveButton_handler)
+        self.submitButton.clicked.connect(self.submitButton_handler)
 
+
+    def submitButton_handler(self):
+        self.open_dialog_box2()
+
+    def open_dialog_box2(self):
+        print("FFT")
     def browseButton_handler(self):
         self.open_dialog_box()
 
@@ -172,8 +178,6 @@ class Ui_Form(QWidget):
            cv2.imshow("Original", imgOrig)
            cv2.imshow("Grayscale", imgGray)
            #cv2.imshow("Binary", imgBinary)
-
-
 
 
 def main():
