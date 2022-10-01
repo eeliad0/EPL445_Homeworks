@@ -5,6 +5,7 @@ import cv2
 from matplotlib import pyplot as plt
 import numpy as np
 from math import pi
+import math
 
 class Ui_Form(QWidget):
     def setupUi(self, Form):
@@ -146,10 +147,32 @@ class Ui_Form(QWidget):
         self.open_dialog_box()
 
     def open_dialog_box(self):
-        filename = QFileDialog.getOpenFileName(filter="Images (*.png *.tiff *.jpg)")
         global path
-        path = filename[0]
-        self.pathLineEdit.setText(path)
+        if self.pathLineEdit.text()=="cos_img":
+            N = 64
+            Icos = mask = np.zeros((N, N))
+            for i in range(0, N):
+                for j in range(0, N):
+                    Icos[i, j] = 0.5 * math.cos(((2 * math.pi) / N) * ((8 * i) + (6 * j))) + 1.5 * math.cos(
+                        ((2 * math.pi) / N) * ((4 * i) + (2 * j))) + math.cos(((2 * math.pi) / N) * ((2 * j)))
+            plt.imshow(Icos, cmap='gray')
+            plt.title('COS Image'), plt.xticks([]),
+            plt.yticks([])
+            plt.show()
+        else:
+           filename = QFileDialog.getOpenFileName(filter="Images (*.png *.tiff *.jpg)")
+           path = filename[0]
+           self.pathLineEdit.setText(path)
+           imgOrig = cv2.imread(path)
+           imgGray = cv2.imread(path, 0)
+           if "dermatological" in path:
+               imgOrig = cv2.resize(imgOrig, None, fx=4, fy=4, interpolation=cv2.INTER_LINEAR)
+               imgGray = cv2.resize(imgGray, None, fx=4, fy=4, interpolation=cv2.INTER_LINEAR)
+           ret, imgBinary = cv2.threshold(imgGray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+           cv2.imshow("Original", imgOrig)
+           cv2.imshow("Grayscale", imgGray)
+           cv2.imshow("Binary", imgBinary)
+
 
 
 
