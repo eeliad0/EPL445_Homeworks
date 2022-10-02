@@ -149,7 +149,7 @@ class Ui_Form(QWidget):
         self.open_dialog_box()
 
     def open_dialog_box(self):
-        global path
+        global path,img
         if self.pathLineEdit.text()=="cos_img":
             N = 64
             Icos = mask = np.zeros((N, N))
@@ -158,6 +158,7 @@ class Ui_Form(QWidget):
                     Icos[i, j] = 0.5 * math.cos(((2 * math.pi) / N) * ((8 * i) + (6 * j))) + 1.5 * math.cos(
                         ((2 * math.pi) / N) * ((4 * i) + (2 * j))) + math.cos(((2 * math.pi) / N) * ((2 * j)))
             plt.imshow(Icos, cmap='gray')
+            img=Icos
             plt.title('COS Image'), plt.xticks([]),
             plt.yticks([])
             plt.show()
@@ -166,7 +167,7 @@ class Ui_Form(QWidget):
            path = filename[0]
            self.pathLineEdit.setText(path)
            imgOrig = cv2.imread(path)
-           imgGray = cv2.imread(path, 0)
+           img = imgGray = cv2.imread(path, 0)
            if "dermatological" in path:
                imgOrig = cv2.resize(imgOrig, None, fx=4, fy=4, interpolation=cv2.INTER_LINEAR)
                imgGray = cv2.resize(imgGray, None, fx=4, fy=4, interpolation=cv2.INTER_LINEAR)
@@ -179,7 +180,65 @@ class Ui_Form(QWidget):
         self.open_dialog_box2()
 
     def open_dialog_box2(self):
-        print("FFT")
+        self.fourier_fun()
+    def fourier_fun(img,mask,r):
+        rows, cols = img.shape
+
+        # Find the center (values are float)
+        crow, ccol = rows / 2, cols / 2
+        # Convert values to integer to be used as index
+        crow = np.int(crow)
+        ccol = np.int(ccol)
+
+        f = np.fft.fft2(img)
+        # Shift the zero-frequency component (DC component) to the center of the spectrum
+        fshift = np.fft.fftshift(f)
+        # Magnitude spectrum using log transformation
+        magnitude_spectrum = np.log(1 + np.abs(fshift))
+        boundary = 50
+        if mask=="High Pass" :
+            mask = np.ones(img.shape, np.uint8)
+            mask[crow - boundary:crow + boundary, ccol - boundary:ccol + boundary] = 0
+
+            # Apply high pass
+            fshift = fshift * mask
+
+            # Apply inverse FFT
+            f_back = np.fft.ifftshift(fshift)
+            img_back = np.fft.ifft2(f_back)
+            img_back = np.real(img_back)
+        elif mask=="Low Pass":
+            # Create low pass
+            mask = np.zeros(img.shape, np.uint8)
+            mask[crow - boundary:crow + boundary, ccol - boundary:ccol + boundary] = 1
+
+            # Apply low pass
+            fshift = fshift * mask
+
+            # Apply inverse FFT
+            f_back = np.fft.ifftshift(fshift)
+            img_back = np.fft.ifft2(f_back)
+            img_back = np.real(img_back)
+        elif mask=="Mid Pass" :
+            # Set mask boundaries
+            boundary1 = 80
+            boundary2 = 100
+
+            # Create mid pass
+            mask = np.zeros((rows, cols), np.uint8)
+            mask[crow - boundary2:crow + boundary2, ccol - boundary2:ccol + boundary2] = 1
+            mask[crow - boundary1:crow + boundary1, ccol - boundary1:ccol + boundary1] = 0
+
+            # Apply mid-pass
+            fshift = fshift * mask
+
+            # Apply inverse FFT
+            f_back = np.fft.ifftshift(fshift)
+            img_back = np.fft.ifft2(f_back)
+            img_back = np.real(img_back)
+        else:
+             print("Error")
+
 def main():
     app = QtWidgets.QApplication(sys.argv)
     window = QtWidgets.QWidget()
