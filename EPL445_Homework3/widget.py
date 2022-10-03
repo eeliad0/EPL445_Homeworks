@@ -6,6 +6,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 from math import pi
 import math
+from PIL import Image
 
 class Ui_Form(QWidget):
     def setupUi(self, Form):
@@ -142,6 +143,7 @@ class Ui_Form(QWidget):
         self.PassComboBox.setItemText(2, _translate("Form", "High Pass"))
         self.browseButton.clicked.connect(self.browseButton_handler)
         self.submitButton.clicked.connect(self.submitButton_handler)
+        self.saveButton.clicked.connect(self.saveButton_handler)
 
 
 
@@ -182,6 +184,7 @@ class Ui_Form(QWidget):
     def open_dialog_box2(self):
         self.fourier_fun()
     def fourier_fun(img,mask,r1,r2):
+     masktxt=mask
      rows, cols = img.shape
 
      # Find the center (values are float)
@@ -232,10 +235,24 @@ class Ui_Form(QWidget):
      plt.subplot(223),plt.imshow(magnitude_spectrum, cmap = 'gray'), plt.colorbar(cmap = 'gray',fraction=0.03, pad=0.04)
      plt.title('Magnitude Spectrum'), plt.axis("off")
      plt.subplot(222),plt.imshow(mask, cmap = 'gray')
-     plt.title('Mask'), plt.axis("off")
+     plt.title(masktxt+'Mask'), plt.axis("off")
      plt.subplot(224),plt.imshow(np.abs(img_back), cmap = 'gray')
      plt.title('Inverse FFT image'), plt.axis("off")
      plt.show()
+
+    def saveButton_handler(self):
+        self.open_dialog_box_3()
+    def open_dialog_box_3(self):
+        cv2.normalize(self, dst=None, alpha=0, beta=255,
+                      norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+        name, blank = QFileDialog.getSaveFileName(self, 'Save File', filter="Images (*.jpg)")
+        if (name):
+            cv2.imwrite(name, img)
+        else:
+            print("error")
+
+
+
 def main():
     app = QtWidgets.QApplication(sys.argv)
     window = QtWidgets.QWidget()
