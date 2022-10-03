@@ -19,7 +19,7 @@ for i in range(0, N):
 #f = np.fft.fft2(Icos)
 #fshift = np.fft.fftshift(f)
 plt.imshow(Icos, cmap = 'gray')
-
+img=Icos
 plt.title('COS Image'), plt.xticks([]),
 plt.yticks([])
 plt.show()
@@ -28,14 +28,14 @@ plt.show()
 
 
 
-f = np.fft.fft2(Icos)
+f = np.fft.fft2(img)
 # Shift the zero-frequency component (DC component) to the center of the spectrum
 fshift = np.fft.fftshift(f)
 # Magnitude spectrum using log transformation
 magnitude_spectrum = np.log(1 + np.abs(fshift))
 
 
-rows, cols = Icos.shape
+rows, cols = img.shape
 
 # Find the center (values are float)
 crow, ccol = rows/2 , cols/2
@@ -44,7 +44,7 @@ r2=20
 #crow = np.int(crow)
 #ccol = np.int(ccol)
 
-mask = np.zeros(Icos.shape, np.uint8)
+mask = np.zeros(img.shape, np.uint8)
 for i in range (0,rows):
     for j in range(0, cols):
         point=math.sqrt(math.pow((i-crow),2)+math.pow((j-ccol),2))
@@ -62,7 +62,7 @@ img_back = np.fft.ifft2(f_back)
 img_back = np.real(img_back)
 dft =np.fft.fft2(Icos, axes=(0,1))
 
-plt.subplot(221),plt.imshow(Icos, cmap = 'gray')
+plt.subplot(221),plt.imshow(img, cmap = 'gray')
 plt.title('Input Image'), plt.axis("off")
 plt.subplot(223),plt.imshow(magnitude_spectrum, cmap = 'gray'), plt.colorbar(cmap = 'gray',fraction=0.03, pad=0.04)
 plt.title('Magnitude Spectrum'), plt.axis("off")
