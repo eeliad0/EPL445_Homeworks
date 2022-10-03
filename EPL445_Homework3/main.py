@@ -40,21 +40,34 @@ rows, cols = Icos.shape
 # Find the center (values are float)
 crow, ccol = rows/2 , cols/2
 radius=15
-mask = np.zeros(Icos.shape, np.uint8)
+#crow = np.int(crow)
+#ccol = np.int(ccol)
 
-#mask[-crow:crow , -ccol:ccol] <= radius*radius
+mask = np.zeros(Icos.shape, np.uint8)
+for i in range (0,rows):
+    for j in range(0, cols):
+        point=math.sqrt(math.pow((i-crow),2)+math.pow((j-ccol),2))
+        if point<=radius:
+           mask[i,j]=1
+#        else:
+#           mask[i,j]=0
+#mask[-crow:crow , -ccol:ccol] <= radius
+mask_for_picture = np.ones((rows, cols, 2), np.uint8)
+y, x = np.ogrid[-crow:crow, -ccol:ccol]
+mask_area = x * 2 + y * 2 <= radius * radius
+
 
 f_back = np.fft.ifftshift(fshift)
 img_back = np.fft.ifft2(f_back)
 img_back = np.real(img_back)
 dft =np.fft.fft2(Icos, axes=(0,1))
 
-plt.subplot(131),plt.imshow(Icos, cmap = 'gray')
+plt.subplot(221),plt.imshow(Icos, cmap = 'gray')
 plt.title('Input Image'), plt.axis("off")
-plt.subplot(132),plt.imshow(magnitude_spectrum, cmap = 'gray'), plt.colorbar(cmap = 'gray',fraction=0.03, pad=0.04)
+plt.subplot(223),plt.imshow(magnitude_spectrum, cmap = 'gray'), plt.colorbar(cmap = 'gray',fraction=0.03, pad=0.04)
 plt.title('Magnitude Spectrum'), plt.axis("off")
-#plt.subplot(132),plt.imshow(mask, cmap = 'gray')
-#plt.title('Mask'), plt.axis("off")
-plt.subplot(133),plt.imshow(np.abs(img_back), cmap = 'gray')
+plt.subplot(222),plt.imshow(mask, cmap = 'gray')
+plt.title('Mask'), plt.axis("off")
+plt.subplot(224),plt.imshow(np.abs(img_back), cmap = 'gray')
 plt.title('Inverse FFT image'), plt.axis("off")
 plt.show()
