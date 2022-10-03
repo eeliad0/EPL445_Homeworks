@@ -181,64 +181,61 @@ class Ui_Form(QWidget):
 
     def open_dialog_box2(self):
         self.fourier_fun()
-    def fourier_fun(img,mask,r):
-        rows, cols = img.shape
+    def fourier_fun(img,mask,r1,r2):
+     rows, cols = img.shape
 
-        # Find the center (values are float)
-        crow, ccol = rows / 2, cols / 2
-        # Convert values to integer to be used as index
-        crow = np.int(crow)
-        ccol = np.int(ccol)
+     # Find the center (values are float)
+     crow, ccol = rows / 2, cols / 2
+     # Convert values to integer to be used as index
+     crow = np.int(crow)
+     ccol = np.int(ccol)
 
-        f = np.fft.fft2(img)
-        # Shift the zero-frequency component (DC component) to the center of the spectrum
-        fshift = np.fft.fftshift(f)
-        # Magnitude spectrum using log transformation
-        magnitude_spectrum = np.log(1 + np.abs(fshift))
-        boundary = 50
-        if mask=="High Pass" :
-            mask = np.ones(img.shape, np.uint8)
-            mask[crow - boundary:crow + boundary, ccol - boundary:ccol + boundary] = 0
+     f = np.fft.fft2(img)
+     # Shift the zero-frequency component (DC component) to the center of the spectrum
+     fshift = np.fft.fftshift(f)
+     # Magnitude spectrum using log transformation
+     magnitude_spectrum = np.log(1 + np.abs(fshift))
 
-            # Apply high pass
-            fshift = fshift * mask
-
-            # Apply inverse FFT
-            f_back = np.fft.ifftshift(fshift)
-            img_back = np.fft.ifft2(f_back)
-            img_back = np.real(img_back)
-        elif mask=="Low Pass":
-            # Create low pass
+     if mask=="High Pass" :
             mask = np.zeros(img.shape, np.uint8)
-            mask[crow - boundary:crow + boundary, ccol - boundary:ccol + boundary] = 1
+            for i in range(0, rows):
+                for j in range(0, cols):
+                    point = math.sqrt(math.pow((i - crow), 2) + math.pow((j - ccol), 2))
+                    if point > r1:
+                        mask[i, j] = 1
 
-            # Apply low pass
-            fshift = fshift * mask
+     elif mask=="Low Pass":
+            mask = np.zeros(img.shape, np.uint8)
+            for i in range(0, rows):
+                for j in range(0, cols):
+                    point = math.sqrt(math.pow((i - crow), 2) + math.pow((j - ccol), 2))
+                    if point <= r1:
+                        mask[i, j] = 1
+     elif mask=="Mid Pass" :
+            mask = np.zeros(img.shape, np.uint8)
+            for i in range(0, rows):
+                for j in range(0, cols):
+                    point = math.sqrt(math.pow((i - crow), 2) + math.pow((j - ccol), 2))
+                    if point >= r1:
+                        if point < r2:
+                            mask[i, j] = 1
 
-            # Apply inverse FFT
-            f_back = np.fft.ifftshift(fshift)
-            img_back = np.fft.ifft2(f_back)
-            img_back = np.real(img_back)
-        elif mask=="Mid Pass" :
-            # Set mask boundaries
-            boundary1 = 80
-            boundary2 = 100
+     else:
+               print("Error")
 
-            # Create mid pass
-            mask = np.zeros((rows, cols), np.uint8)
-            mask[crow - boundary2:crow + boundary2, ccol - boundary2:ccol + boundary2] = 1
-            mask[crow - boundary1:crow + boundary1, ccol - boundary1:ccol + boundary1] = 0
+     f_back = np.fft.ifftshift(fshift)
+     img_back = np.fft.ifft2(f_back)
+     img_back = np.real(img_back)
 
-            # Apply mid-pass
-            fshift = fshift * mask
-
-            # Apply inverse FFT
-            f_back = np.fft.ifftshift(fshift)
-            img_back = np.fft.ifft2(f_back)
-            img_back = np.real(img_back)
-        else:
-             print("Error")
-
+     plt.subplot(221),plt.imshow(img, cmap = 'gray')
+     plt.title('Input Image'), plt.axis("off")
+     plt.subplot(223),plt.imshow(magnitude_spectrum, cmap = 'gray'), plt.colorbar(cmap = 'gray',fraction=0.03, pad=0.04)
+     plt.title('Magnitude Spectrum'), plt.axis("off")
+     plt.subplot(222),plt.imshow(mask, cmap = 'gray')
+     plt.title('Mask'), plt.axis("off")
+     plt.subplot(224),plt.imshow(np.abs(img_back), cmap = 'gray')
+     plt.title('Inverse FFT image'), plt.axis("off")
+     plt.show()
 def main():
     app = QtWidgets.QApplication(sys.argv)
     window = QtWidgets.QWidget()

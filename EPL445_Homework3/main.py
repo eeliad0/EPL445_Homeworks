@@ -39,7 +39,8 @@ rows, cols = Icos.shape
 
 # Find the center (values are float)
 crow, ccol = rows/2 , cols/2
-radius=15
+r1=15
+r2=20
 #crow = np.int(crow)
 #ccol = np.int(ccol)
 
@@ -47,14 +48,13 @@ mask = np.zeros(Icos.shape, np.uint8)
 for i in range (0,rows):
     for j in range(0, cols):
         point=math.sqrt(math.pow((i-crow),2)+math.pow((j-ccol),2))
-        if point<=radius:
-           mask[i,j]=1
+        if point>=r1 :
+            if point<r2:
+             mask[i,j]=1
 #        else:
 #           mask[i,j]=0
 #mask[-crow:crow , -ccol:ccol] <= radius
-mask_for_picture = np.ones((rows, cols, 2), np.uint8)
-y, x = np.ogrid[-crow:crow, -ccol:ccol]
-mask_area = x * 2 + y * 2 <= radius * radius
+
 
 
 f_back = np.fft.ifftshift(fshift)
