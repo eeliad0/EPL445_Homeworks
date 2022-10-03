@@ -186,8 +186,8 @@ class Ui_Form(QWidget):
 
     def open_dialog_box2(self):
         self.fourier_fun()
-    def fourier_fun(img,mask,r1,r2):
-     masktxt=mask
+    def fourier_fun(img,m,r1,r2):
+     masktxt=m
      rows, cols = img.shape
 
      # Find the center (values are float)
@@ -202,7 +202,7 @@ class Ui_Form(QWidget):
      # Magnitude spectrum using log transformation
      magnitude_spectrum = np.log(1 + np.abs(fshift))
 
-     if mask=="High Pass" :
+     if m=="High Pass" :
             mask = np.zeros(img.shape, np.uint8)
             for i in range(0, rows):
                 for j in range(0, cols):
@@ -210,14 +210,14 @@ class Ui_Form(QWidget):
                     if point > r1:
                         mask[i, j] = 1
 
-     elif mask=="Low Pass":
+     elif m=="Low Pass":
             mask = np.zeros(img.shape, np.uint8)
             for i in range(0, rows):
                 for j in range(0, cols):
                     point = math.sqrt(math.pow((i - crow), 2) + math.pow((j - ccol), 2))
                     if point <= r1:
                         mask[i, j] = 1
-     elif mask=="Mid Pass" :
+     elif m=="Mid Pass" :
             mask = np.zeros(img.shape, np.uint8)
             for i in range(0, rows):
                 for j in range(0, cols):
