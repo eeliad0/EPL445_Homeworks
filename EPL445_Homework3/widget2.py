@@ -232,34 +232,21 @@ class Ui_Form(QWidget):
         self.open_dialog_box()
 
      def open_dialog_box(self):
-        global path,image,Icos
-        if self.pathLineEdit.text()=="cos_img":
-            N = 64
-            Icos  = np.zeros((N, N))
-            for i in range(0, N):
-                for j in range(0, N):
-                    Icos[i, j] = 0.5 * math.cos(((2 * math.pi) / N) * ((8 * i) + (6 * j))) + 1.5 * math.cos(
-                        ((2 * math.pi) / N) * ((4 * i) + (2 * j))) + math.cos(((2 * math.pi) / N) * ((2 * j)))
-            plt.imshow(Icos, cmap='gray')
-            image=Icos
-            plt.title('COS Image'), plt.xticks([]),
-            plt.yticks([])
-            plt.show()
-        else:
-           filename = QFileDialog.getOpenFileName(filter="Images (*.png *.tiff *.jpg)")
-           path = filename[0]
-           self.pathLineEdit.setText(path)
-           imgOrig = cv2.imread(path)
-           image = imgGray = cv2.imread(path, 0)
-           N = self.regionLineEdit.text();
-           if "dermatological" in path:
+        global path,image
+        filename = QFileDialog.getOpenFileName(filter="Images (*.png *.tiff *.jpg)")
+        path = filename[0]
+        self.pathLineEdit.setText(path)
+        imgOrig = cv2.imread(path)
+        image = imgGray = cv2.imread(path, 0)
+        N = self.regionLineEdit.text();
+        if "dermatological" in path:
                imgOrig = cv2.resize(imgOrig, None, fx=4, fy=4, interpolation=cv2.INTER_LINEAR)
                image = imgGray = cv2.resize(imgGray, None, fx=4, fy=4, interpolation=cv2.INTER_LINEAR)
                #imgOrig=imgOrig[N:N,N]
                #imgGray=imgGray[N,N]
            #ret, imgBinary = cv2.threshold(imgGray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-           cv2.imshow("Original", imgOrig)
-           cv2.imshow("Grayscale", imgGray)
+        cv2.imshow("Original", imgOrig)
+        cv2.imshow("Grayscale", imgGray)
            #cv2.imshow("Binary", imgBinary)
 
      def saveButton_handler(self):
@@ -287,10 +274,23 @@ class Ui_Form(QWidget):
         #cv2.imshow("IMG ",image)
         #cv2.waitKey(0)
         #cv2.destroyAllWindows()
+        if self.pathLineEdit.text()=="cos_img":
+            N = 64
+            Icos  = np.zeros((N, N))
+            for i in range(0, N):
+                for j in range(0, N):
+                    Icos[i, j] = 0.5 * math.cos(((2 * math.pi) / N) * ((8 * i) + (6 * j))) + 1.5 * math.cos(
+                        ((2 * math.pi) / N) * ((4 * i) + (2 * j))) + math.cos(((2 * math.pi) / N) * ((2 * j)))
+            plt.imshow(Icos, cmap='gray')
+            image=Icos
+            plt.title('COS Image'), plt.xticks([]),
+            plt.yticks([])
+            plt.show()
+        else:
+
+            path = self.pathLineEdit.text()
+            image = imgGray = cv2.imread(path, 0)
         self.fourier_fun(image, mask, radiusONE)
-
-
-
 
 
 

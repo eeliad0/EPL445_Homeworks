@@ -7,8 +7,8 @@ import numpy as np
 from math import pi
 import math
 
-print("Hello World mlk")
-print("ELLIEEEEEEEEEEEEEEEEEEEEEEEEEEE SOVAREFTOUUUUUUUUU")
+print("Hello World ")
+
 
 #img=cv2.imread("logo2.png")
 N = 64
@@ -22,11 +22,10 @@ plt.imshow(Icos, cmap = 'gray')
 img=Icos
 plt.title('COS Image'), plt.xticks([]),
 plt.yticks([])
-plt.show()
+#plt.show()
 #rows, cols = img.shape
 
-
-
+           #ret, imgBinary = cv2.threshold(imgGray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
 f = np.fft.fft2(img)
 # Shift the zero-frequency component (DC component) to the center of the spectrum
@@ -48,14 +47,15 @@ mask = np.zeros(img.shape, np.uint8)
 for i in range (0,rows):
     for j in range(0, cols):
         point=math.sqrt(math.pow((i-crow),2)+math.pow((j-ccol),2))
-        if point>=r1 :
-            if point<r2:
-             mask[i,j]=1
+        if point <= r1:
+            #if point < r2:
+             mask[i, j] = 1
+
 #        else:
 #           mask[i,j]=0
 #mask[-crow:crow , -ccol:ccol] <= radius
 
-
+#fshift = fshift*mask
 
 f_back = np.fft.ifftshift(fshift)
 img_back = np.fft.ifft2(f_back)
@@ -63,11 +63,11 @@ img_back = np.real(img_back)
 dft =np.fft.fft2(Icos, axes=(0,1))
 
 plt.subplot(221),plt.imshow(img, cmap = 'gray')
-plt.title('Input Image'), plt.axis("off")
+plt.title('COS Input Image'), plt.axis("off")
 plt.subplot(223),plt.imshow(magnitude_spectrum, cmap = 'gray'), plt.colorbar(cmap = 'gray',fraction=0.03, pad=0.04)
 plt.title('Magnitude Spectrum'), plt.axis("off")
 plt.subplot(222),plt.imshow(mask, cmap = 'gray')
-plt.title('Mask'), plt.axis("off")
+plt.title('Mask Low Pass'), plt.axis("off")
 plt.subplot(224),plt.imshow(np.abs(img_back), cmap = 'gray')
 plt.title('Inverse FFT image'), plt.axis("off")
 plt.show()
