@@ -289,7 +289,19 @@ class Ui_Form(QWidget):
         else:
 
             path = self.pathLineEdit.text()
+            imgOrig = cv2.imread(path)
             image = imgGray = cv2.imread(path, 0)
+            N = self.regionLineEdit.text();
+            if "dermatological" in path:
+                imgOrig = cv2.resize(imgOrig, None, fx=4, fy=4, interpolation=cv2.INTER_LINEAR)
+                image = imgGray = cv2.resize(imgGray, None, fx=4, fy=4, interpolation=cv2.INTER_LINEAR)
+                # imgOrig=imgOrig[N:N,N]
+                # imgGray=imgGray[N,N]
+            # ret, imgBinary = cv2.threshold(imgGray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            cv2.imshow("Original", imgOrig)
+            cv2.imshow("Grayscale", imgGray)
+            # cv2.imshow("Binary", imgBinary)
+
         self.fourier_fun(image, mask, radiusONE)
 
 
