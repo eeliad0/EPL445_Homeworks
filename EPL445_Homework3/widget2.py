@@ -6,6 +6,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 from math import pi
 import math
+import os
 from PIL import Image
 
 class Ui_Form(QWidget):
@@ -146,10 +147,14 @@ class Ui_Form(QWidget):
         self.saveButton.clicked.connect(self.saveButton_handler)
 
      def fourier_fun(self,img1,m,r1):
-        print("koko")
-        #masktxt=m
+
+        masktxt=m
         radius1=int(r1)
         radius2=self.radius2LineEdit.text()
+        #center
+        hh, ww = img1.shape[:2]
+        xc = hh // 2
+        yc = ww // 2
 
 
 
@@ -157,30 +162,26 @@ class Ui_Form(QWidget):
         #cv2.waitKey(0)
         #cv2.destroyAllWindows()
         rows, cols = img1.shape
-        print("koko2")
+
         # Find the center (values are float)
         crow, ccol = rows / 2, cols / 2
         # Convert values to integer to be used as index
-        print(crow)
-        print(ccol)
         #crow = np.int(crow)
         #ccol = np.int(ccol)
-        print(crow)
-        print(ccol)
-        print("koko3")
+
 
         f = np.fft.fft2(img1)
-        print("koko4")
+
         # Shift the zero-frequency component (DC component) to the center of the spectrum
         fshift = np.fft.fftshift(f)
-        print("koko5")
+
         # Magnitude spectrum using log transformation
         magnitude_spectrum = np.log(1 + np.abs(fshift))
 
 
-        print("koko6")
+
         if m=="High Pass" :
-            print("kokoHigh")
+
             mask = np.zeros(img1.shape, np.uint8)
             for i in range(0, rows):
                 for j in range(0, cols):
@@ -188,43 +189,51 @@ class Ui_Form(QWidget):
                     if point > radius1:
                         mask[i, j] = 1
         elif m=="Low Pass":
-            print("koko7")
+
 
             mask = np.zeros(img1.shape, np.uint8)
-            print("koko8")
+
             for i in range(0, rows):
                 for j in range(0, cols):
                     point = math.sqrt(math.pow((i - crow), 2) + math.pow((j - ccol), 2))
                     if point <= radius1:
                         mask[i, j] = 1
         elif m=="Mid Pass" :
-            mask = np.zeros(img1.shape, np.uint8)
-            for i in range(0, rows):
-                for j in range(0, cols):
-                    point = math.sqrt(math.pow((i - crow), 2) + math.pow((j - ccol), 2))
-                    if point >= radius1:
-                        if point < int(radius2):
-                            mask[i, j] = 1
+            mask1 = np.zeros_like(img1)
+            mask1 = cv2.circle(mask1, (yc, xc), radius1, (255, 255, 255), -1)
+            mask2 = np.zeros_like(img1)
+            mask2 = cv2.circle(mask2, (yc, xc), int(radius2), (255, 255, 255), -1)
+            mask = cv2.subtract(mask2, mask1)
+            #mask = np.zeros(img1.shape, np.uint8)
+            #for i in range(0, rows):
+            #    for j in range(0, cols):
+            #        point = math.sqrt(math.pow((i - crow), 2) + math.pow((j - ccol), 2))
+            #        if point >= radius1:
+            #            if point < int(radius2):
+            #                mask[i, j] = 1
 
-        print("koko9")
+        fshift = fshift * mask
+
+        global img_back
         f_back = np.fft.ifftshift(fshift)
         img_back = np.fft.ifft2(f_back)
         img_back = np.real(img_back)
-        print("koko10")
+
         plt.subplot(221),plt.imshow(img1, cmap = 'gray')
         plt.title('Input Image'), plt.axis("off")
-        print("koko11")
+
         plt.subplot(223),plt.imshow(magnitude_spectrum, cmap = 'gray'), plt.colorbar(cmap = 'gray',fraction=0.03, pad=0.04)
         plt.title('Magnitude Spectrum'), plt.axis("off")
-        print("koko12")
+
         plt.subplot(222),plt.imshow(mask, cmap = 'gray')
-        plt.title('Mask'), plt.axis("off")
-        print("koko13")
+        plt.title('Mask'+' '+ masktxt), plt.axis("off")
+
         plt.subplot(224),plt.imshow(np.abs(img_back), cmap = 'gray')
-        plt.title('Inverse FFT image'), plt.axis("off")
-        print("koko14")
+        plt.title('Inverse FFT Image'), plt.axis("off")
+
         plt.show()
-        print("koko15")
+
+
 
 
 
@@ -236,44 +245,37 @@ class Ui_Form(QWidget):
         filename = QFileDialog.getOpenFileName(filter="Images (*.png *.tiff *.jpg)")
         path = filename[0]
         self.pathLineEdit.setText(path)
-        imgOrig = cv2.imread(path)
-        image = imgGray = cv2.imread(path, 0)
-        N = self.regionLineEdit.text();
-        if "dermatological" in path:
-               imgOrig = cv2.resize(imgOrig, None, fx=4, fy=4, interpolation=cv2.INTER_LINEAR)
-               image = imgGray = cv2.resize(imgGray, None, fx=4, fy=4, interpolation=cv2.INTER_LINEAR)
-               #imgOrig=imgOrig[N:N,N]
-               #imgGray=imgGray[N,N]
-           #ret, imgBinary = cv2.threshold(imgGray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        cv2.imshow("Original", imgOrig)
-        cv2.imshow("Grayscale", imgGray)
-           #cv2.imshow("Binary", imgBinary)
 
      def saveButton_handler(self):
             self.open_dialog_box_3()
 
      def open_dialog_box_3(self):
-        cv2.normalize(self, dst=None, alpha=0, beta=255,norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
-        #name, blank = QFileDialog.getSaveFileName(self, 'Save File', filter="Images (*.jpg)")
-        #if (name):
-        #    cv2.imwrite(name, image)
-        #else:
-        #    print("error")
+        saveimg= cv2.normalize(img_back, dst=None, alpha=0, beta=255,norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+        name, filter = QFileDialog.getSaveFileName(self, 'Save File', os.getcwd(), filter="Images (*.jpg)")
+        if (name):
+            cv2.imwrite(name,np.abs(saveimg))
+        else:
+            print("error")
      def submitButton_handler(self):
         self.open_dialog_box2()
 
-
+     def regionn(self,image):
+         region = self.regionLineEdit.text()
+         if region != "":
+             range = int(region) // 2
+             hh, ww = image.shape[:2]
+             xc = hh // 2
+             yc = ww // 2
+             image = image[xc - range:xc + range, yc - range:yc + range]
+             return image
      def open_dialog_box2(self):
-        print("HEREEEEEEEEEEEEEE")
+
         mask=self.PassComboBox.currentText()
-        print("mask",mask)
+
         radiusONE=(self.radiusLineEdit.text())
-        print("HEREEEEEEEEEEEEEE",radiusONE)
-        radiusTWO=(self.radius2LineEdit.text())
-        print("HEREEEEEEEEEEEEEE",radiusTWO)
-        #cv2.imshow("IMG ",image)
-        #cv2.waitKey(0)
-        #cv2.destroyAllWindows()
+
+
+
         if self.pathLineEdit.text()=="cos_img":
             N = 64
             Icos  = np.zeros((N, N))
@@ -283,23 +285,24 @@ class Ui_Form(QWidget):
                         ((2 * math.pi) / N) * ((4 * i) + (2 * j))) + math.cos(((2 * math.pi) / N) * ((2 * j)))
             plt.imshow(Icos, cmap='gray')
             image=Icos
-            plt.title('COS Image'), plt.xticks([]),
-            plt.yticks([])
-            plt.show()
+            #plt.title('COS Image'), plt.xticks([]),
+            #plt.yticks([])
+            #plt.show()
         else:
 
             path = self.pathLineEdit.text()
             imgOrig = cv2.imread(path)
             image = imgGray = cv2.imread(path, 0)
-            N = self.regionLineEdit.text();
+
             if "dermatological" in path:
                 imgOrig = cv2.resize(imgOrig, None, fx=4, fy=4, interpolation=cv2.INTER_LINEAR)
                 image = imgGray = cv2.resize(imgGray, None, fx=4, fy=4, interpolation=cv2.INTER_LINEAR)
-                # imgOrig=imgOrig[N:N,N]
-                # imgGray=imgGray[N,N]
-            # ret, imgBinary = cv2.threshold(imgGray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-            cv2.imshow("Original", imgOrig)
-            cv2.imshow("Grayscale", imgGray)
+                # ret, imgBinary = cv2.threshold(imgGray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+                #region = self.regionLineEdit.text()
+                image = self.regionn(image)
+
+            #cv2.imshow("Original", imgOrig)
+            #cv2.imshow("Grayscale", imgGray)
             # cv2.imshow("Binary", imgBinary)
 
         self.fourier_fun(image, mask, radiusONE)
