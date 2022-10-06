@@ -13,6 +13,9 @@ class Ui_Form(QWidget):
     def setupUi(self, Form):
         Form.setObjectName("Form")
         Form.resize(579, 188)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap("logo2.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        Form.setWindowIcon(icon)
         self.widget = QtWidgets.QWidget(Form)
         self.widget.setGeometry(QtCore.QRect(10, 10, 551, 161))
         self.widget.setObjectName("widget")
@@ -104,7 +107,7 @@ class Ui_Form(QWidget):
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
+        Form.setWindowTitle(_translate("Form", "Noise and Filter Selection"))
         self.label.setText(_translate("Form", "Image path"))
         self.browseButton.setText(_translate("Form", "Browse Image"))
         self.label_2.setText(_translate("Form", "Choose noise"))
@@ -155,6 +158,29 @@ class Ui_Form(QWidget):
         else:
             print("error")
 
+    def filter_select(self,img):
+        global filter, titleFilter
+        titleFilter=self.comboBox_2.currentText()
+
+        if titleFilter=='Averaging':
+            filter = cv2.blur(img, (5, 5))
+
+        elif titleFilter=='Gaussian':
+            filter = cv2.GaussianBlur(img, (5, 5), 0)
+
+        elif titleFilter=='Median':
+            img=np.float32(img)
+            filter = cv2.medianBlur(img, 5)
+
+        elif titleFilter=='Laplacian':
+            filter = cv2.Laplacian(img, cv2.CV_64F)
+
+        elif titleFilter=='Sobel':
+            filter = cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=5) #sobelx
+
+        else:
+            print("error")
+
 
     def submitButton_handler(self):
         self.submitButton_dialogBox()
@@ -162,10 +188,14 @@ class Ui_Form(QWidget):
     def submitButton_dialogBox(self):
         imgOrig = cv2.imread(path,0)
         self.noise_select(imgOrig)
-        plt.subplot(121), plt.imshow(imgOrig, cmap='gray')
+        self.filter_select(noise)
+        plt.subplot(131), plt.imshow(imgOrig, cmap='gray')
         plt.title('Original Image'), plt.xticks([]), plt.yticks([])
-        plt.subplot(122), plt.imshow(noise, cmap='gray')
+        plt.subplot(132), plt.imshow(noise, cmap='gray')
         plt.title(titleNoise+' Noise'), plt.xticks([]), plt.yticks([])
+        plt.subplot(133), plt.imshow(filter, cmap='gray')
+        plt.title(titleFilter+' Filter'), plt.xticks([]), plt.yticks([])
+
         plt.show()
 
 
