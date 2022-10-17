@@ -177,7 +177,7 @@ class Ui_Form(QWidget):
             filter = cv2.Laplacian(img, cv2.CV_64F)
 
         elif titleFilter=='Sobel':
-            filter = cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=5) #sobelx
+            filter = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=5) #sobely
 
         else:
             print("error")
