@@ -9,10 +9,14 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog
-import sys
+from Huffman3 import huffman, encode, decode, makenodes, iterate
+import collections
 import cv2
 from matplotlib import pyplot as plt
 import numpy as np
+import sys
+from Huffman3 import encode, decode, makenodes, iterate
+from zigzag import zigzag
 
 class Ui_Form(object):
     def setupUi(self, Form):
@@ -131,17 +135,78 @@ class Ui_Form(object):
         self.label_6.setText(_translate("Form", "Compression"))
         self.pushButton.setText(_translate("Form", "Browse"))
         self.pushButton.clicked.connect(self.pushButton_handler)
+        self.pushButtonSubmit.clicked.connect(self.submitButtonHandler)
 
     def pushButton_handler(self):
         self.browseImage()
 
     def browseImage(self):
-        filename = QFileDialog.getOpenFileName(filter="Images (*.png *.tiff *.jpg)")
+        filename = QFileDialog.getOpenFileName(filter="Images (*.jpg *.png *.tif)")
         global path
         path = filename[0]
         self.lineEdit.setText(path)
+        global img
+
+        img = cv2.imread(path,0)
+        global q_table
+        q_table = np.array([[16, 11, 10, 16, 24, 40, 51, 61],
+                           [12, 12, 14, 19, 26, 58, 60, 55],
+                           [14, 13, 16, 24, 40, 57, 69, 56],
+                           [14, 17, 22, 29, 51, 87, 80, 62],
+                           [18, 22, 37, 56, 68, 109, 103, 77],
+                           [24, 35, 55, 64, 81, 104, 113, 92],
+                           [49, 64, 78, 87, 103, 121, 120, 101],
+                           [72, 92, 95, 98, 112, 100, 103, 99]], dtype=np.float32)
+
+    def submitButtonHandler(self):
+        global title
+        if(path[-3:]).lower()=="jpg":
+            title="Decompression"
+            self.imgDecompression(self.lineEditMF.text())
+
+        elif(path[-3:].lower()=="png" or path[-3:].lower()=="tif"):
+            title = "Compression"
+            self.imgCompression(self.lineEditMF.text())
+
+        else:
+            print("error...")
 
 
+    def imgCompression(self,factor):
+        factor=float(factor)
+        #step one: 8x8 blocks &apply DCT to each block
+        vector_blocks = []
+        iHeight, iWidth = img.shape
+
+        # Image partitioned into 8x8 blocks
+        for startY in range(0, img.shape[0]-8, 8):
+            for startX in range(0, img.shape[0]-8, 8):
+                block = img[startY:startY + 8, startX:startX + 8]
+                vector_blocks.append(block)
+        # DCT
+        block_f = np.float32(block)
+        block_dct = cv2.dct(block_f)
+
+        #step two: Quantization of the DCT coefficients
+        q_table_factor = np.multiply(q_table, factor)
+        print("edo")
+        block_q = np.floor(np.divide(block_dct, q_table_factor) + 0.5)
+        #step three: ZigZag of the array with the coefficients
+        vectors_zigzag = []
+        vectors_zigzag = zigzag(block_q)
+
+        #step four: DPCM for DC values
+        e = []
+
+        # leave first value of first vector as it is
+        e.append(vectors_zigzag[0])
+        for k in range(1, len(vectors_zigzag)):
+            e.append(vectors_zigzag[(k*8)] - vectors_zigzag[(k - 1)*8])
+
+
+
+    def imgDecompression(self,factor):
+        print("hi")
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
