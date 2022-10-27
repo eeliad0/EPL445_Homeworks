@@ -16,7 +16,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import sys
 from Huffman3 import encode, decode, makenodes, iterate
-from zigzag import zigzag
+from zigzag import zigzag, inverse_zigzag
 
 class Ui_Form(object):
     def setupUi(self, Form):
@@ -148,6 +148,7 @@ class Ui_Form(object):
         global img
 
         img = cv2.imread(path,0)
+        img = cv2.resize(img, (512, 512), interpolation=cv2.INTER_AREA)
         global q_table
         q_table = np.array([[16, 11, 10, 16, 24, 40, 51, 61],
                            [12, 12, 14, 19, 26, 58, 60, 55],
@@ -159,54 +160,88 @@ class Ui_Form(object):
                            [72, 92, 95, 98, 112, 100, 103, 99]], dtype=np.float32)
 
     def submitButtonHandler(self):
-        global title
-        if(path[-3:]).lower()=="jpg":
-            title="Decompression"
-            self.imgDecompression(self.lineEditMF.text())
+        self.imgCompression(self.lineEditMF.text())
 
-        elif(path[-3:].lower()=="png" or path[-3:].lower()=="tif"):
-            title = "Compression"
-            self.imgCompression(self.lineEditMF.text())
+    def imgCompression(self, factor):
 
-        else:
-            print("error...")
-
-
-    def imgCompression(self,factor):
-        factor=float(factor)
-        #step one: 8x8 blocks &apply DCT to each block
+        factor = float(factor)
+        # step one: 8x8 blocks &apply DCT to each block
         vector_blocks = []
         iHeight, iWidth = img.shape
-
         # Image partitioned into 8x8 blocks
         for startY in range(0, img.shape[0]-8, 8):
-            for startX in range(0, img.shape[0]-8, 8):
+            for startX in range(0, img.shape[1]-8, 8):
                 block = img[startY:startY + 8, startX:startX + 8]
                 vector_blocks.append(block)
+
         # DCT
         block_f = np.float32(block)
         block_dct = cv2.dct(block_f)
 
-        #step two: Quantization of the DCT coefficients
+        # step two: Quantization of the DCT coefficients
         q_table_factor = np.multiply(q_table, factor)
-        print("edo")
         block_q = np.floor(np.divide(block_dct, q_table_factor) + 0.5)
-        #step three: ZigZag of the array with the coefficients
-        vectors_zigzag = []
+
+        # step three: ZigZag of the array with the coefficients
         vectors_zigzag = zigzag(block_q)
 
-        #step four: DPCM for DC values
+        # step four: DPCM for DC values
         e = []
-
         # leave first value of first vector as it is
         e.append(vectors_zigzag[0])
-        for k in range(1, len(vectors_zigzag)):
+        print(len(vectors_zigzag))
+        for k in range(1, 8):
             e.append(vectors_zigzag[(k*8)] - vectors_zigzag[(k - 1)*8])
 
+        # step five: RLC for AC values
+        zero_count = 0
+        pos = 0
+        ac = []
+        for i in range(64):
+            if(vectors_zigzag[i]==0):
+                zero_count = zero_count+1
+            else:
+                ac.append([zero_count,vectors_zigzag[i]])
+                zero_count = 0
+
+            if(i==63):
+                ac.append([0,0])
+        # step six: Huffman encoding
+        # for DC difference values
+        # Find frequency of appearance for each value of the list
+        counter1 = collections.Counter(e)
+        # Define list of probabilities as list of pairs (Unique item, Corresponding frequency)
+        probs1 = []
+        # Initialization of probabilities' list
+        for key, value in counter1.items():
+            probs1.append((key, np.float32(value)))
+        # Creates a list of nodes ready for the Huffman algorithm 'iterate'.
+        symbols1 = makenodes(probs1)
+        # Runs the Huffman algorithm on a list of "nodes". It returns a pointer to the root of a new tree of "internal nodes".
+        root1 = iterate(symbols1)
+        s1 = encode(e, symbols1)
+
+        # Inverse to get the Compressed Image
+        # Huffman Decoding
+        list_decode_dpcm = decode(s1, root1)
+        #Inverse DPCM
+        ie = []
+        ie.append(list_decode_dpcm[0])
+        for k in range(1, len(list_decode_dpcm)):
+            ie.append(list_decode_dpcm[k] + ie[k - 1])
+        # Inverse ZigZag
+        inverseZigZag = inverse_zigzag(vectors_zigzag, 8, 8)
+        # Inverse Quantization
+        q_table_factor = np.multiply(q_table,factor)
+        blockT = np.multiply(inverseZigZag, q_table_factor)
+        # Inverse DCT
+        block_idct = cv2.idct(blockT)
+        Iblock = np.float32(block_idct)
 
 
-    def imgDecompression(self,factor):
-        print("hi")
+
+
+
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
