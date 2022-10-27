@@ -6,7 +6,6 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog
 from Huffman3 import huffman, encode, decode, makenodes, iterate
@@ -16,12 +15,18 @@ from matplotlib import pyplot as plt
 import numpy as np
 import sys
 from Huffman3 import encode, decode, makenodes, iterate
+from skimage.metrics import structural_similarity as ssim
 from zigzag import zigzag, inverse_zigzag
+import math
+import os
 
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
         Form.resize(467, 343)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap("icon.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        Form.setWindowIcon(icon)
         self.label = QtWidgets.QLabel(Form)
         self.label.setGeometry(QtCore.QRect(25, 13, 239, 21))
         font = QtGui.QFont()
@@ -125,7 +130,7 @@ class Ui_Form(object):
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
+        Form.setWindowTitle(_translate("Form", "Image Compression"))
         self.label.setText(_translate("Form", "Browse and Show Image Path"))
         self.pushButtonSubmit.setText(_translate("Form", "Submit"))
         self.label_2.setText(_translate("Form", "Give Multiplying Factor"))
@@ -161,111 +166,144 @@ class Ui_Form(object):
 
     def submitButtonHandler(self):
         self.imgCompression(self.lineEditMF.text())
-    def dctComp(self,block):
-        block_f = np.float32(block)
-        block_dct.append(cv2.dct(block_f))
-
-    def quantComp(self,block):
-        block_q.append(np.floor(np.divide(block_dct, q_table_factor) + 0.5))
-
-    def zigzagComp(self,block):
-        vector_zigzag.append(zigzag(block))
-
-    def dpcmComp(self,count):
-            for k in range(1, 8):
-                e[count].append(vector_zigzag[(k * 8)] - vector_zigzag[(k - 1) * 8])
 
     def imgCompression(self, factor):
-
+        dpcm = []
+        jpeg = []
+        prevDc = 0
+        iHeight, iWidth = img.shape[:2]
         factor = float(factor)
-        # step one: 8x8 blocks &apply DCT to each block
-        vector_blocks = [[]]
-        iHeight, iWidth = img.shape
-        counter=0
-        global block_dct
-        block_dct = []
-        global block_q
-        block_q=[]
-        global vector_zigzag
-        vector_zigzag=[[]]
-        # Image partitioned into 8x8 blocks
-        for startY in range(0, img.shape[0]-8, 8):
-            for startX in range(0, img.shape[1]-8, 8):
-                block = img[startY:startY + 8, startX:startX + 8]
-                print(block,counter)
-                vector_blocks.append(block)
-                self.dctComp(vector_blocks[counter])
-                counter = counter + 1
-        global q_table_factor
         q_table_factor = np.multiply(q_table, factor)
-        counter = 0
-        for startY in range(0, img.shape[0]-8, 8):
-            for startX in range(0, img.shape[1]-8, 8):
-                self.quantComp(block_dct[counter])
-                counter=counter+1
-        counter=0
-        for startY in range(0, img.shape[0]-8, 8):
-            for startX in range(0, img.shape[1]-8, 8):
-                self.zigzagComp(block_q[counter])
-                counter=counter+1
+        for startY in range(0, iHeight, 8):
+            for startX in range(0, iWidth, 8):
+                block = img[startY:startY + 8, startX:startX + 8]
+                # apply DCT for a block
+                block_f = np.float32(block)
+                dst = cv2.dct(block_f)
+                # Quantization in each block
+                block_q = np.floor(np.divide(dst, q_table_factor) + 0.5)
+                # Make zigzag table
+                zigzag_table = (zigzag(block_q))
+                dpcm.append((zigzag_table[0] - prevDc))
+                prevDc = zigzag_table[0]
+                #RLC
+                zigzag_table.pop(0)
+                rlc = []
+                count = 0
+                # Apply the RLC for all the elements from the zig zag table
+                for i in zigzag_table:
+                    if i == 0:
+                        count += 1
+                        continue
+                    else:
+                        rlc.append(count)
+                        rlc.append(i)
+                        count = 0
+                rlc.append(0)
+                rlc.append(0)
+                # create huffman algorithm for this block
+                jpeg.append(huffman(rlc))
+        # the compressed image
+        jpeg.append(huffman(dpcm))
 
-        global e
-        e=[[]]
-        e[0].append(vector_zigzag[0])
-        counter=0
-        for startY in range(0, img.shape[0]-8, 8):
-            for startX in range(0, img.shape[1]-8, 8):
-                self.dpcmComp(counter)
-
-        # step five: RLC for AC values
-        zero_count = 0
-        pos = 0
-        ac = []
-        for i in range(64):
-            if(vectors_zigzag[i]==0):
-                zero_count = zero_count+1
+        # decompress the image
+        dec = []
+        # all except last row are the DC
+        for i in jpeg[:-1]:
+            current = [float(j) for j in decode(i[0], i[1])]
+            array = []
+            if len(current) == 0:
+                for l in range(63):
+                    array.append(0)
+            for k in range(0, len(current), 2):
+                # if this is the last element
+                if int(current[k]) == 0 and int(current[k + 1]) == 0:
+                    # apply the rest with 0 until 64 is completed.
+                    for l in range(63 - len(array)):
+                        array.append(0.0)
+                    break
+                if int(current[k]) != 0:
+                    # append the number of zeros we had before the number
+                    for l in range(int(current[k])):
+                        array.append(0.0)
+                # append the number after the zeros
+                array.append(current[k + 1])
+            dec.append(array)
+        c = 0
+        # decode the DC table
+        dc = decode(jpeg[-1][0], jpeg[-1][1])
+        for i in dc:
+            if c == 0:
+                dec[0].insert(0, float(i))
             else:
-                ac.append([zero_count,vectors_zigzag[i]])
-                zero_count = 0
+                dec[c].insert(0, float(i) + float(dec[c - 1][0][0]))
+            dec[c] = np.array(dec[c])
+            # inverse zig zag
+            dec[c] = inverse_zigzag(dec[c].astype(int))
+            c += 1
+        # our decompressed image table
+        img_comp = np.empty(shape=(iHeight, iWidth))
+        temp = []
+        for i in dec:
+            # inverse the quantization for each block
+            iblock_q = np.floor(np.multiply(i, q_table_factor) + 0.5)
+            # inverse the dct
+            inv_dct = cv2.idct(iblock_q)
+            np.place(inv_dct, inv_dct > 255.0, 255.0)
+            np.place(inv_dct, inv_dct < 0.0, 0.0)
+            temp.append(inv_dct)
+        k = 0
+        # reorganise the block to create the image in its original structure.
+        for startY in range(0, iHeight, 8):
+            for startX in range(0, iWidth, 8):
+                img_comp[startY:startY + 8, startX:startX + 8] = temp[k]
+                k += 1
 
-            if(i==63):
-                ac.append([0,0])
-        # step six: Huffman encoding
-        # for DC difference values
-        # Find frequency of appearance for each value of the list
-        counter1 = collections.Counter(e)
-        # Define list of probabilities as list of pairs (Unique item, Corresponding frequency)
-        probs1 = []
-        # Initialization of probabilities' list
-        for key, value in counter1.items():
-            probs1.append((key, np.float32(value)))
-        # Creates a list of nodes ready for the Huffman algorithm 'iterate'.
-        symbols1 = makenodes(probs1)
-        # Runs the Huffman algorithm on a list of "nodes". It returns a pointer to the root of a new tree of "internal nodes".
-        root1 = iterate(symbols1)
-        s1 = encode(e, symbols1)
-
-        # Inverse to get the Compressed Image
-        # Huffman Decoding
-        list_decode_dpcm = decode(s1, root1)
-        #Inverse DPCM
-        ie = []
-        ie.append(list_decode_dpcm[0])
-        for k in range(1, len(list_decode_dpcm)):
-            ie.append(list_decode_dpcm[k] + ie[k - 1])
-        # Inverse ZigZag
-        inverseZigZag = inverse_zigzag(vectors_zigzag, 8, 8)
-        # Inverse Quantization
-        q_table_factor = np.multiply(q_table,factor)
-        blockT = np.multiply(inverseZigZag, q_table_factor)
-        # Inverse DCT
-        block_idct = cv2.idct(blockT)
-        Iblock = np.float32(block_idct)
+        if(path[-3:]=="tif"):
+            cv2.imwrite('original.tif', img)
+            cv2.imwrite('compressed.tif', img_comp)
+        elif(path[-3:]=="png"):
+            cv2.imwrite('original.png', img)
+            cv2.imwrite('compressed.png', img_comp)
+        else:
+            print("wrong image format")
 
 
+        mse = np.mean((img - img_comp) ** 2)
+        pnsr = 10 * np.log10(math.pow(255, 2) / mse)
+        ssim_value = ssim(img, img_comp, data_range=img.max() - img.min())
 
+        img_size = os.path.getsize('original.tif')
+        comp_size = os.path.getsize('compressed.tif')
+        cr = img_size / comp_size
 
+        print("mse ", mse)
+        print("pnsr ", pnsr)
+        print("ssim ", ssim_value)
+        print("compression rate", cr)
 
+        self.lineEditMSE.setText(str(mse))
+        self.lineEditPNSR.setText(str(pnsr))
+        self.lineEditSSIM.setText(str(ssim_value))
+        self.lineEditComp.setText(str(cr))
+
+        plt.subplot(121), plt.imshow(img, cmap='gray')
+        plt.title('Initial Picture'), plt.xticks([]), plt.yticks([])
+        plt.subplot(122), plt.imshow(img_comp, cmap='gray')
+        plt.title("Image after jpg algorithm"), plt.xticks([]), plt.yticks([])
+        plt.show()
+
+def huffman( list):
+    counter = collections.Counter(list)
+    size = 16 * len(set(list))
+    probs = []
+    # Initialization of probs list
+    for key, value in counter.items():
+        probs.append((key, np.float32(value)))
+    symbols = makenodes(probs)
+    root = iterate(symbols)
+    s = encode(list, symbols)
+    return (s, root, size)
 
 def main():
     app = QtWidgets.QApplication(sys.argv)

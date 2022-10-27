@@ -1,185 +1,158 @@
-# Zigzag scan of a matrix
-# Argument is a two-dimensional matrix of any size,
-# not strictly a square one.
-# Function returns a 1-by-(m*n) array,
-# where m and n are sizes of an input matrix,
-# consisting of its items scanned by a zigzag method.
-#
-# Matlab Code:
-# Alexey S. Sokolov a.k.a. nICKEL, Moscow, Russia
-# June 2007
-# alex.nickel@gmail.com
-
 import numpy as np
 
+def zigzag(table):
 
-def zigzag(input):
-    # initializing the variables
-    # ----------------------------------
-    h = 0
-    v = 0
+    vector = [0] * 64
+    k = 0
+    vector[0] = table[k, 0]
+    vector[1] = table[k, 1]
+    vector[5] = table[k, 2]
+    vector[6] = table[k, 3]
+    vector[14] = table[k, 4]
+    vector[15] = table[k, 5]
+    vector[27] = table[k, 6]
+    vector[28] = table[k, 7]
+    k = 1
+    vector[2] = table[k, 0]
+    vector[4] = table[k, 1]
+    vector[7] = table[k, 2]
+    vector[13] = table[k, 3]
+    vector[16] = table[k, 4]
+    vector[26] = table[k, 5]
+    vector[29] = table[k, 6]
+    vector[42] = table[k, 7]
+    k = 2
+    vector[3] = table[k, 0]
+    vector[8] = table[k, 1]
+    vector[12] = table[k, 2]
+    vector[17] = table[k, 3]
+    vector[25] = table[k, 4]
+    vector[39] = table[k, 5]
+    vector[41] = table[k, 6]
+    vector[43] = table[k, 7]
+    k = 3
+    vector[9] = table[k, 0]
+    vector[11] = table[k, 1]
+    vector[18] = table[k, 2]
+    vector[24] = table[k, 3]
+    vector[31] = table[k, 4]
+    vector[40] = table[k, 5]
+    vector[44] = table[k, 6]
+    vector[53] = table[k, 7]
+    k = 4
+    vector[10] = table[k, 0]
+    vector[19] = table[k, 1]
+    vector[23] = table[k, 2]
+    vector[32] = table[k, 3]
+    vector[39] = table[k, 4]
+    vector[45] = table[k, 5]
+    vector[52] = table[k, 6]
+    vector[54] = table[k, 7]
+    k = 5
+    vector[20] = table[k, 0]
+    vector[22] = table[k, 1]
+    vector[33] = table[k, 2]
+    vector[38] = table[k, 3]
+    vector[46] = table[k, 4]
+    vector[51] = table[k, 5]
+    vector[55] = table[k, 6]
+    vector[60] = table[k, 7]
+    k = 6
+    vector[21] = table[k, 0]
+    vector[34] = table[k, 1]
+    vector[37] = table[k, 2]
+    vector[47] = table[k, 3]
+    vector[50] = table[k, 4]
+    vector[56] = table[k, 5]
+    vector[59] = table[k, 6]
+    vector[61] = table[k, 7]
+    k = 7
+    vector[35] = table[k, 0]
+    vector[36] = table[k, 1]
+    vector[48] = table[k, 2]
+    vector[49] = table[k, 3]
+    vector[57] = table[k, 4]
+    vector[58] = table[k, 5]
+    vector[62] = table[k, 6]
+    vector[63] = table[k, 7]
 
-    vmin = 0
-    hmin = 0
+    return vector
 
-    vmax = input.shape[0]
-    hmax = input.shape[1]
+def inverse_zigzag( vector):
 
-    # print(vmax ,hmax )
+    table = np.zeros((8, 8))
+    k = 0
 
-    i = 0
+    table[k, 0] = vector[0]
+    table[k, 1] = vector[1]
+    table[k, 2] = vector[5]
+    table[k, 3] = vector[6]
+    table[k, 4] = vector[14]
+    table[k, 5] = vector[15]
+    table[k, 6] = vector[27]
+    table[k, 7] = vector[28]
+    k = 1
+    table[k, 0] = vector[2]
+    table[k, 1] = vector[4]
+    table[k, 2] = vector[7]
+    table[k, 3] = vector[13]
+    table[k, 4] = vector[16]
+    table[k, 5] = vector[26]
+    table[k, 6] = vector[29]
+    table[k, 7] = vector[42]
+    k = 2
+    table[k, 0] = vector[3]
+    table[k, 1] = vector[8]
+    table[k, 2] = vector[12]
+    table[k, 3] = vector[17]
+    table[k, 4] = vector[25]
+    table[k, 5] = vector[30]
+    table[k, 6] = vector[41]
+    table[k, 7] = vector[43]
+    k = 3
+    table[k, 0] = vector[9]
+    table[k, 1] = vector[11]
+    table[k, 2] = vector[18]
+    table[k, 3] = vector[24]
+    table[k, 4] = vector[31]
+    table[k, 5] = vector[40]
+    table[k, 6] = vector[44]
+    table[k, 7] = vector[53]
+    k = 4
+    table[k, 0] = vector[10]
+    table[k, 1] = vector[19]
+    table[k, 2] = vector[23]
+    table[k, 3] = vector[32]
+    table[k, 4] = vector[39]
+    table[k, 5] = vector[45]
+    table[k, 6] = vector[52]
+    table[k, 7] = vector[54]
+    k = 5
+    table[k, 0] = vector[20]
+    table[k, 1] = vector[22]
+    table[k, 2] = vector[33]
+    table[k, 3] = vector[38]
+    table[k, 4] = vector[46]
+    table[k, 5] = vector[51]
+    table[k, 6] = vector[55]
+    table[k, 7] = vector[60]
+    k = 6
+    table[k, 0] = vector[21]
+    table[k, 1] = vector[34]
+    table[k, 2] = vector[37]
+    table[k, 3] = vector[47]
+    table[k, 4] = vector[50]
+    table[k, 5] = vector[56]
+    table[k, 6] = vector[59]
+    table[k, 7] = vector[61]
+    k = 7
+    table[k, 0] = vector[35]
+    table[k, 1] = vector[36]
+    table[k, 2] = vector[48]
+    table[k, 3] = vector[49]
+    table[k, 4] = vector[57]
+    table[k, 5] = vector[58]
+    table[k, 6] = vector[62]
+    table[k, 7] = vector[63]
 
-    output = np.zeros((vmax * hmax))
-    # ----------------------------------
-
-    while ((v < vmax) and (h < hmax)):
-
-        if ((h + v) % 2) == 0:  # going up
-
-            if (v == vmin):
-                # print(1)
-                output[i] = input[v, h]  # if we got to the first line
-
-                if (h == hmax):
-                    v = v + 1
-                else:
-                    h = h + 1
-
-                i = i + 1
-
-            elif ((h == hmax - 1) and (v < vmax)):  # if we got to the last column
-                # print(2)
-                output[i] = input[v, h]
-                v = v + 1
-                i = i + 1
-
-            elif ((v > vmin) and (h < hmax - 1)):  # all other cases
-                # print(3)
-                output[i] = input[v, h]
-                v = v - 1
-                h = h + 1
-                i = i + 1
-
-
-        else:  # going down
-
-            if ((v == vmax - 1) and (h <= hmax - 1)):  # if we got to the last line
-                # print(4)
-                output[i] = input[v, h]
-                h = h + 1
-                i = i + 1
-
-            elif (h == hmin):  # if we got to the first column
-                # print(5)
-                output[i] = input[v, h]
-
-                if (v == vmax - 1):
-                    h = h + 1
-                else:
-                    v = v + 1
-
-                i = i + 1
-
-            elif ((v < vmax - 1) and (h > hmin)):  # all other cases
-                # print(6)
-                output[i] = input[v, h]
-                v = v + 1
-                h = h - 1
-                i = i + 1
-
-        if ((v == vmax - 1) and (h == hmax - 1)):  # bottom right element
-            # print(7)
-            output[i] = input[v, h]
-            break
-
-    # print ('v:',v,', h:',h,', i:',i)
-    return output
-
-
-# Inverse zigzag scan of a matrix
-# Arguments are: a 1-by-m*n array,
-# where m & n are vertical & horizontal sizes of an output matrix.
-# Function returns a two-dimensional matrix of defined sizes,
-# consisting of input array items gathered by a zigzag method.
-#
-# Matlab Code:
-# Alexey S. Sokolov a.k.a. nICKEL, Moscow, Russia
-# June 2007
-# alex.nickel@gmail.com
-
-
-def inverse_zigzag(input, vmax, hmax):
-    # print input.shape
-
-    # initializing the variables
-    # ----------------------------------
-    h = 0
-    v = 0
-
-    vmin = 0
-    hmin = 0
-
-    output = np.zeros((vmax, hmax))
-
-    i = 0
-    # ----------------------------------
-
-    while ((v < vmax) and (h < hmax)):
-        # print ('v:',v,', h:',h,', i:',i)
-        if ((h + v) % 2) == 0:  # going up
-
-            if (v == vmin):
-                # print(1)
-
-                output[v, h] = input[i]  # if we got to the first line
-
-                if (h == hmax):
-                    v = v + 1
-                else:
-                    h = h + 1
-
-                i = i + 1
-
-            elif ((h == hmax - 1) and (v < vmax)):  # if we got to the last column
-                # print(2)
-                output[v, h] = input[i]
-                v = v + 1
-                i = i + 1
-
-            elif ((v > vmin) and (h < hmax - 1)):  # all other cases
-                # print(3)
-                output[v, h] = input[i]
-                v = v - 1
-                h = h + 1
-                i = i + 1
-
-
-        else:  # going down
-
-            if ((v == vmax - 1) and (h <= hmax - 1)):  # if we got to the last line
-                # print(4)
-                output[v, h] = input[i]
-                h = h + 1
-                i = i + 1
-
-            elif (h == hmin):  # if we got to the first column
-                # print(5)
-                output[v, h] = input[i]
-                if (v == vmax - 1):
-                    h = h + 1
-                else:
-                    v = v + 1
-                i = i + 1
-
-            elif ((v < vmax - 1) and (h > hmin)):  # all other cases
-                output[v, h] = input[i]
-                v = v + 1
-                h = h - 1
-                i = i + 1
-
-        if ((v == vmax - 1) and (h == hmax - 1)):  # bottom right element
-            # print(7)
-            output[v, h] = input[i]
-            break
-
-    return output
+    return table
