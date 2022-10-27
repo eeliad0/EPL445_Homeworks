@@ -161,37 +161,61 @@ class Ui_Form(object):
 
     def submitButtonHandler(self):
         self.imgCompression(self.lineEditMF.text())
+    def dctComp(self,block):
+        block_f = np.float32(block)
+        block_dct.append(cv2.dct(block_f))
+
+    def quantComp(self,block):
+        block_q.append(np.floor(np.divide(block_dct, q_table_factor) + 0.5))
+
+    def zigzagComp(self,block):
+        vector_zigzag.append(zigzag(block))
+
+    def dpcmComp(self,count):
+            for k in range(1, 8):
+                e[count].append(vector_zigzag[(k * 8)] - vector_zigzag[(k - 1) * 8])
 
     def imgCompression(self, factor):
 
         factor = float(factor)
         # step one: 8x8 blocks &apply DCT to each block
-        vector_blocks = []
+        vector_blocks = [[]]
         iHeight, iWidth = img.shape
+        counter=0
+        global block_dct
+        block_dct = []
+        global block_q
+        block_q=[]
+        global vector_zigzag
+        vector_zigzag=[[]]
         # Image partitioned into 8x8 blocks
         for startY in range(0, img.shape[0]-8, 8):
             for startX in range(0, img.shape[1]-8, 8):
                 block = img[startY:startY + 8, startX:startX + 8]
+                print(block,counter)
                 vector_blocks.append(block)
-
-        # DCT
-        block_f = np.float32(block)
-        block_dct = cv2.dct(block_f)
-
-        # step two: Quantization of the DCT coefficients
+                self.dctComp(vector_blocks[counter])
+                counter = counter + 1
+        global q_table_factor
         q_table_factor = np.multiply(q_table, factor)
-        block_q = np.floor(np.divide(block_dct, q_table_factor) + 0.5)
+        counter = 0
+        for startY in range(0, img.shape[0]-8, 8):
+            for startX in range(0, img.shape[1]-8, 8):
+                self.quantComp(block_dct[counter])
+                counter=counter+1
+        counter=0
+        for startY in range(0, img.shape[0]-8, 8):
+            for startX in range(0, img.shape[1]-8, 8):
+                self.zigzagComp(block_q[counter])
+                counter=counter+1
 
-        # step three: ZigZag of the array with the coefficients
-        vectors_zigzag = zigzag(block_q)
-
-        # step four: DPCM for DC values
-        e = []
-        # leave first value of first vector as it is
-        e.append(vectors_zigzag[0])
-        print(len(vectors_zigzag))
-        for k in range(1, 8):
-            e.append(vectors_zigzag[(k*8)] - vectors_zigzag[(k - 1)*8])
+        global e
+        e=[[]]
+        e[0].append(vector_zigzag[0])
+        counter=0
+        for startY in range(0, img.shape[0]-8, 8):
+            for startX in range(0, img.shape[1]-8, 8):
+                self.dpcmComp(counter)
 
         # step five: RLC for AC values
         zero_count = 0
