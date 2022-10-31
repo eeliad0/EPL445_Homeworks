@@ -1,20 +1,12 @@
-# -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'untitled.ui'
-#
-# Created by: PyQt5 UI code generator 5.9.2
-#
-# WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog
-from Huffman3 import huffman, encode, decode, makenodes, iterate
-import collections
+from Huffman3 import encode, decode, makenodes, iterate, huffmanList
 import cv2
 from matplotlib import pyplot as plt
 import numpy as np
 import sys
-from Huffman3 import encode, decode, makenodes, iterate
 from skimage.metrics import structural_similarity as ssim
 from zigzag import zigzag, inverse_zigzag
 import math
@@ -176,17 +168,19 @@ class Ui_Form(object):
         q_table_factor = np.multiply(q_table, factor)
         for startY in range(0, iHeight, 8):
             for startX in range(0, iWidth, 8):
+                # Blocking 8x8 and DCT
                 block = img[startY:startY + 8, startX:startX + 8]
                 # apply DCT for a block
                 block_f = np.float32(block)
                 dst = cv2.dct(block_f)
-                # Quantization in each block
+                # Quantization of DCT coefficients
                 block_q = np.floor(np.divide(dst, q_table_factor) + 0.5)
-                # Make zigzag table
+                # Αναδιάταξη δεδομένων Zig-Zag
                 zigzag_table = (zigzag(block_q))
+                # DPCM for DC values
                 dpcm.append((zigzag_table[0] - prevDc))
                 prevDc = zigzag_table[0]
-                #RLC
+                #RLC for AC values
                 zigzag_table.pop(0)
                 rlc = []
                 count = 0
@@ -201,14 +195,13 @@ class Ui_Form(object):
                         count = 0
                 rlc.append(0)
                 rlc.append(0)
-                # create huffman algorithm for this block
-                jpeg.append(huffman(rlc))
-        # the compressed image
-        jpeg.append(huffman(dpcm))
+                # huffman encoding
+                jpeg.append(huffmanList(rlc))
+        # getting compressed img
+        jpeg.append(huffmanList(dpcm))
 
-        # decompress the image
-        dec = []
-        # all except last row are the DC
+        # Decompression of img
+        dComp = []
         for i in jpeg[:-1]:
             current = [float(j) for j in decode(i[0], i[1])]
             array = []
@@ -228,23 +221,23 @@ class Ui_Form(object):
                         array.append(0.0)
                 # append the number after the zeros
                 array.append(current[k + 1])
-            dec.append(array)
+            dComp.append(array)
         c = 0
         # decode the DC table
         dc = decode(jpeg[-1][0], jpeg[-1][1])
         for i in dc:
             if c == 0:
-                dec[0].insert(0, float(i))
+                dComp[0].insert(0, float(i))
             else:
-                dec[c].insert(0, float(i) + float(dec[c - 1][0][0]))
-            dec[c] = np.array(dec[c])
+                dComp[c].insert(0, float(i) + float(dComp[c - 1][0][0]))
+            dComp[c] = np.array(dComp[c])
             # inverse zig zag
-            dec[c] = inverse_zigzag(dec[c].astype(int))
+            dComp[c] = inverse_zigzag(dComp[c].astype(int))
             c += 1
         # our decompressed image table
         img_comp = np.empty(shape=(iHeight, iWidth))
         temp = []
-        for i in dec:
+        for i in dComp:
             # inverse the quantization for each block
             iblock_q = np.floor(np.multiply(i, q_table_factor) + 0.5)
             # inverse the dct
@@ -262,19 +255,21 @@ class Ui_Form(object):
         if(path[-3:]=="tif"):
             cv2.imwrite('original.tif', img)
             cv2.imwrite('compressed.tif', img_comp)
+            img_size = os.path.getsize('original.tif')
+            comp_size = os.path.getsize('compressed.tif')
+
         elif(path[-3:]=="png"):
             cv2.imwrite('original.png', img)
             cv2.imwrite('compressed.png', img_comp)
+            img_size = os.path.getsize('original.png')
+            comp_size = os.path.getsize('compressed.png')
+
         else:
             print("wrong image format")
-
 
         mse = np.mean((img - img_comp) ** 2)
         pnsr = 10 * np.log10(math.pow(255, 2) / mse)
         ssim_value = ssim(img, img_comp, data_range=img.max() - img.min())
-
-        img_size = os.path.getsize('original.tif')
-        comp_size = os.path.getsize('compressed.tif')
         cr = img_size / comp_size
 
         print("mse ", mse)
@@ -293,17 +288,6 @@ class Ui_Form(object):
         plt.title("Image after jpg algorithm"), plt.xticks([]), plt.yticks([])
         plt.show()
 
-def huffman( list):
-    counter = collections.Counter(list)
-    size = 16 * len(set(list))
-    probs = []
-    # Initialization of probs list
-    for key, value in counter.items():
-        probs.append((key, np.float32(value)))
-    symbols = makenodes(probs)
-    root = iterate(symbols)
-    s = encode(list, symbols)
-    return (s, root, size)
 
 def main():
     app = QtWidgets.QApplication(sys.argv)

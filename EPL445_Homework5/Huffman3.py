@@ -64,6 +64,9 @@ Examples illustrating use of this package:
 See also the file Example.py for a python program that uses this package.
 """
 import sys, string
+import numpy as np
+import collections
+
 class node:
     def __init__(self, count, index , name="" ):
         self.count = float(count)
@@ -223,6 +226,18 @@ def huffman( counts , verbose=0 ) :
     return (c,root)
 ## end ##########################################################################
 
+def huffmanList( list):
+    counter = collections.Counter(list)
+    size = 16 * len(set(list))
+    probs = []
+    # Initialization of probs list
+    for key, value in counter.items():
+        probs.append((key, np.float32(value)))
+    symbols = makenodes(probs)
+    root = iterate(symbols)
+    s = encode(list, symbols)
+    return (s, root, size)
+
 def makenodes(probs):
     """
     Creates a list of nodes ready for the Huffman algorithm.
@@ -313,6 +328,8 @@ def reportcode(c):
     for co in c :                              # and write the answer
         co.report()    
 ## end ##########################################################################
+
+
 
 
     
