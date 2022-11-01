@@ -145,7 +145,6 @@ class Ui_Form(object):
         global img
 
         img = cv2.imread(path,0)
-        img = cv2.resize(img, (512, 512), interpolation=cv2.INTER_AREA)
         global q_table
         q_table = np.array([[16, 11, 10, 16, 24, 40, 51, 61],
                            [12, 12, 14, 19, 26, 58, 60, 55],
@@ -254,30 +253,33 @@ class Ui_Form(object):
 
         if(path[-3:]=="tif"):
             cv2.imwrite('original.tif', img)
-            cv2.imwrite('compressed.tif', img_comp)
             img_size = os.path.getsize('original.tif')
-            comp_size = os.path.getsize('compressed.tif')
 
         elif(path[-3:]=="png"):
             cv2.imwrite('original.png', img)
-            cv2.imwrite('compressed.png', img_comp)
             img_size = os.path.getsize('original.png')
-            comp_size = os.path.getsize('compressed.png')
 
         else:
             print("wrong image format")
 
-        mse = np.mean((img - img_comp) ** 2)
-        pnsr = 10 * np.log10(math.pow(255, 2) / mse)
+        #getting metrics for the compressed image
+        cv2.imwrite('compressed.jpg', img_comp)
+        comp_size = os.path.getsize('compressed.jpg')
+        sumMSE = 0
+        for i in range(0, iHeight):
+            for j in range(0, iWidth):
+                sumMSE = sumMSE + math.pow(img[i][j] - img_comp[i][j], 2)
+        sumMSE = sumMSE/(iHeight*iWidth)
+        pnsr = 10 * np.log10(math.pow(255, 2) / sumMSE)
         ssim_value = ssim(img, img_comp, data_range=img.max() - img.min())
         cr = img_size / comp_size
 
-        print("mse ", mse)
+        print("mse ", sumMSE)
         print("pnsr ", pnsr)
         print("ssim ", ssim_value)
         print("compression rate", cr)
 
-        self.lineEditMSE.setText(str(mse))
+        self.lineEditMSE.setText(str(sumMSE))
         self.lineEditPNSR.setText(str(pnsr))
         self.lineEditSSIM.setText(str(ssim_value))
         self.lineEditComp.setText(str(cr))
