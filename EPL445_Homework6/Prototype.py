@@ -13,9 +13,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog
 import sys
-import os
-import numpy as np
 import cv2
+from matplotlib import pyplot as plt
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
@@ -88,9 +87,67 @@ class Ui_Form(object):
         self.label_2.setText(_translate("Form", "Prototype"))
         self.pushButton_3.setText(_translate("Form", "Submit"))
         self.pushButton_2.setText(_translate("Form", "Browse Prototype"))
+        self.pushButton_2.clicked.connect(self.pushButton_Prototype)
+        self.pushButton.clicked.connect(self.pushButton_Image)
+        self.pushButton_3.clicked.connect(self.submit_handler)
 
+    def pushButton_Image(self):
+        self.browseImage()
 
+    def pushButton_Prototype(self):
+        self.browsePrototype()
 
+    def browseImage(self):
+        filename = QFileDialog.getOpenFileName(filter="Images (*.jpg *.png *.tif *.webp)")
+        path = filename[0]
+        self.lineEdit.setText(path)
+        global img, img2
+        img = cv2.imread(path, 0)
+        img2 = img.copy()
+
+    def browsePrototype(self):
+        filename = QFileDialog.getOpenFileName(filter="Images (*.jpg *.png *.tif *.webp)")
+        path = filename[0]
+        self.lineEdit_2.setText(path)
+        global proto
+        proto = cv2.imread(path, 0)
+
+    def submit_handler(self):
+        self.image_matching()
+
+    def image_matching(self):
+
+        h, w = proto.shape
+        # All the 6 methods for comparison in a list
+        methods = ['cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR', 'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF',
+                   'cv2.TM_SQDIFF_NORMED']
+        for meth in methods:
+
+            img = img2.copy()
+            # Enumerate the template matching operation
+            method = eval(meth)
+
+            # Apply template matching
+            res = cv2.matchTemplate(img, proto, method)
+            min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+
+            # If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take the minimum
+            if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
+                top_left = min_loc
+            else:
+                top_left = max_loc
+
+            bottom_right = (top_left[0] + w, top_left[1] + h)
+            cv2.rectangle(img, top_left, bottom_right, 255, 2)
+
+            name = "fig" + meth
+            fig = plt.figure(name)
+            plt.subplot(121), plt.imshow(res, cmap='gray')
+            plt.title('Matching Result'), plt.xticks([]), plt.yticks([])
+            plt.subplot(122), plt.imshow(img, cmap='gray')
+            plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
+            plt.suptitle(meth)
+            plt.show()
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
