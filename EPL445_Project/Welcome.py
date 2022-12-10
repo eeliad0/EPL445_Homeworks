@@ -38,16 +38,20 @@ class WidgetScreen(QDialog):
         super(WidgetScreen, self).__init__()
         loadUi("SecurityCamera.ui",self)
         self.Submit_button.clicked.connect(self.function)
+        self.BrowseButton.clicked.connect(self.pushButton_handler)
 
     def function(self):
         global email_address, email_password, msg
         email_address = "seccameraepl445@gmail.com"
         email_password = "wmmqojqunhcqxwtb"
+        email = str(self.Email_lineEdit.text())
+        if (len(email) == 0):
+            email = "nvaki001@ucy.ac.cy"
         # create email
         msg = EmailMessage()
         msg['Subject'] = "EPL445 Security Camera - Motion Detection"
         msg['From'] = email_address
-        msg['To'] = "nvaki001@ucy.ac.cy"
+        msg['To'] = email
         msg.set_content("Hello, \n"
                         "There is someone at your front door! \nPlease check it out.\n"
                         "\n"
@@ -56,7 +60,7 @@ class WidgetScreen(QDialog):
             self.motion_detection(email_address,email_password,msg)
 
         if self.VideoFromFileRadioButton_2.isChecked():
-            print("miou")
+            self.motion_detection1()
 
     def pushButton_handler(self):
         self.open_dialog_box()
@@ -65,8 +69,7 @@ class WidgetScreen(QDialog):
         filename = QFileDialog.getOpenFileName(filter="Videos (*.mp4 *.avi *.mov)")
         global path
         path = filename[0]
-        self.lineEdit.setText(path)
-        src = path
+        self.VideoBrowseLineEdit.setText(path)
 
     def motion_detection(self, email, epassword, msg):
         cam = cv2.VideoCapture(0)
@@ -94,6 +97,29 @@ class WidgetScreen(QDialog):
                 break
             cv2.imshow('Security Camera', frame1)
 
+    def motion_detection1(self):
+        video = cv2.VideoCapture(path)
+        while video.isOpened():
+            ret, frame1 = video.read()
+            ret, frame2 = video.read()
+            diff = cv2.absdiff(frame1, frame2)  # apoliti timi (frame1 - frame2)
+            gray = cv2.cvtColor(diff, cv2.COLOR_RGB2GRAY)
+            blur = cv2.GaussianBlur(gray, (5, 5), 0)
+            _, thresh = cv2.threshold(blur, 20, 255, cv2.THRESH_BINARY)
+            dilated = cv2.dilate(thresh, None, iterations=3)
+            contours, _ = cv2.findContours(dilated, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            # cv2.drawContours(frame1, contours, -1, (0, 255, 0), 2)
+            for c in contours:
+                if cv2.contourArea(c) < 6000:
+                    continue
+                x, y, w, h = cv2.boundingRect(c)
+                cv2.rectangle(frame1, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                winsound.PlaySound('alert.wav', winsound.SND_ASYNC)
+                self.screenshot()
+            if cv2.waitKey(10) == ord('q'):  # gia na teliosi o kodikas, o user prepei na patisei q.
+                break
+            cv2.imshow('Security Camera', frame1)
+
     def screenshot (self):
         img = pyautogui.screenshot()
         name = "suspect_image(" + str(random.random()) + ").jpg"
@@ -107,8 +133,12 @@ welcome = Ui_SecurityCameraStart()
 widget = QtWidgets.QStackedWidget()
 app.setObjectName("Security Camera")
 widget.addWidget(welcome)
+icon = QtGui.QIcon()
+icon.addPixmap(QtGui.QPixmap("eye.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+widget.setWindowIcon(icon)
 widget.setFixedHeight(800)
 widget.setFixedWidth(1200)
+widget.setWindowTitle("Security Camera EPL445")
 widget.show()
 try:
     sys.exit(app.exec_())
