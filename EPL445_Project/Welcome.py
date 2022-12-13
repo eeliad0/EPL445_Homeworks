@@ -1,17 +1,8 @@
-# -*- coding: utf-8 -*-
-
-# Form implementation generated from reading ui file 'SecurityCameraStart.ui'
-#
-# Created by: PyQt5 UI code generator 5.9.2
-#
-# WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtWidgets , QtGui, QtCore
 from PyQt5.uic import loadUi
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QDialog, QApplication, QWidget, QFileDialog
-from PyQt5.QtGui import QPixmap
-from Widget import Ui_SecurityCameraMain
 import sys
 import cv2
 import winsound
@@ -49,10 +40,10 @@ class WidgetScreen(QDialog):
             email = "nvaki001@ucy.ac.cy"
         # create email
         msg = EmailMessage()
-        msg['Subject'] = "EPL445 Security Camera - Motion Detection"
+        msg['Subject'] = "URGENT! EPL445 Security Camera - Motion Detection"
         msg['From'] = email_address
         msg['To'] = email
-        msg.set_content("Hello, \n"
+        msg.set_content("Hello,\n"
                         "There is someone at your front door! \nPlease check it out.\n"
                         "\n"
                         "Your Security Camera. ")
@@ -83,19 +74,19 @@ class WidgetScreen(QDialog):
             dilated = cv2.dilate(thresh, None, iterations=3)
             contours, _ = cv2.findContours(dilated, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             # cv2.drawContours(frame1, contours, -1, (0, 255, 0), 2)
-            for c in contours:
-                if cv2.contourArea(c) < 10000:
-                    continue
-                x, y, w, h = cv2.boundingRect(c)
-                cv2.rectangle(frame1, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                winsound.PlaySound('alert.wav', winsound.SND_ASYNC)
-                self.screenshot()
-                with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-                    smtp.login(email, epassword)
+            with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+                smtp.login(email, epassword)
+                for c in contours:
+                    if cv2.contourArea(c) < 10000:
+                        continue
+                    x, y, w, h = cv2.boundingRect(c)
+                    cv2.rectangle(frame1, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                    self.screenshot()
+                    winsound.PlaySound('alert.wav', winsound.SND_ASYNC)
                     smtp.send_message(msg)
-            if cv2.waitKey(10) == ord('q'):  # gia na teliosi o kodikas, o user prepei na patisei q.
-                break
-            cv2.imshow('Security Camera', frame1)
+                if cv2.waitKey(10) == ord('q'):  # gia na teliosi o kodikas, o user prepei na patisei q.
+                    break
+                cv2.imshow('Security Camera', frame1)
 
     def motion_detection1(self):
         video = cv2.VideoCapture(path)
@@ -137,7 +128,7 @@ icon = QtGui.QIcon()
 icon.addPixmap(QtGui.QPixmap("eye.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
 widget.setWindowIcon(icon)
 widget.setFixedHeight(800)
-widget.setFixedWidth(1200)
+widget.setFixedWidth(1000)
 widget.setWindowTitle("Security Camera EPL445")
 widget.show()
 try:
