@@ -8,8 +8,6 @@ import cv2
 import winsound
 import smtplib
 from email.message import EmailMessage
-import pyautogui
-import numpy as np
 import random
 
 class Ui_SecurityCameraStart(QDialog):
@@ -81,7 +79,7 @@ class WidgetScreen(QDialog):
                         continue
                     x, y, w, h = cv2.boundingRect(c)
                     cv2.rectangle(frame1, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                    self.screenshot()
+                    self.screenshot(frame1)
                     winsound.PlaySound('alert.wav', winsound.SND_ASYNC)
                     smtp.send_message(msg)
                 if cv2.waitKey(10) == ord('q'):  # gia na teliosi o kodikas, o user prepei na patisei q.
@@ -106,17 +104,14 @@ class WidgetScreen(QDialog):
                 x, y, w, h = cv2.boundingRect(c)
                 cv2.rectangle(frame1, (x, y), (x + w, y + h), (0, 255, 0), 2)
                 winsound.PlaySound('alert.wav', winsound.SND_ASYNC)
-                self.screenshot()
+                self.screenshot(frame1)
             if cv2.waitKey(10) == ord('q'):  # gia na teliosi o kodikas, o user prepei na patisei q.
                 break
             cv2.imshow('Security Camera', frame1)
 
-    def screenshot (self):
-        img = pyautogui.screenshot()
+    def screenshot (self,frame1):
         name = "suspect_image(" + str(random.random()) + ").jpg"
-        frame = np.array(img)
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        cv2.imwrite(filename=name, img=frame)
+        cv2.imwrite(filename=name, img=frame1)
 
 
 app = QApplication(sys.argv)
