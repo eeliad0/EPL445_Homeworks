@@ -75,7 +75,7 @@ class WidgetScreen(QDialog):
             with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
                 smtp.login(email, epassword)
                 for c in contours:
-                    if cv2.contourArea(c) < 10000:
+                    if cv2.contourArea(c) < 6000:
                         continue
                     x, y, w, h = cv2.boundingRect(c)
                     cv2.rectangle(frame1, (x, y), (x + w, y + h), (0, 255, 0), 2)
